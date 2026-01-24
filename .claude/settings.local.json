@@ -8,7 +8,9 @@
       "Bash(dotnet ef migrations:*)",
       "Bash(dotnet run)",
       "Bash(curl:*)",
-      "Bash(ping:*)"
+      "Bash(ping:*)",
+      "Bash(dotnet restore:*)",
+      "Bash(dotnet test:*)"
     ]
   }
 }

@@ -69,7 +69,7 @@ public class CalendarService
         return events;
     }
 
-    private bool DoesRepeatOnDate(RepeatingEvent repeatEvent, DateOnly date)
+    internal bool DoesRepeatOnDate(RepeatingEvent repeatEvent, DateOnly date)
     {
         return repeatEvent.RepeatType switch
         {
@@ -81,14 +81,14 @@ public class CalendarService
         };
     }
 
-    private bool CheckDate(RepeatingEvent repeatEvent, DateOnly date)
+    internal bool CheckDate(RepeatingEvent repeatEvent, DateOnly date)
     {
         if (!repeatEvent.Month.HasValue || !repeatEvent.Day.HasValue)
             return false;
         return date.Month == repeatEvent.Month.Value && date.Day == repeatEvent.Day.Value;
     }
 
-    private bool CheckDayOfWeek(RepeatingEvent repeatEvent, DateOnly date)
+    internal bool CheckDayOfWeek(RepeatingEvent repeatEvent, DateOnly date)
     {
         if (!repeatEvent.DayOfWeek.HasValue)
             return false;
@@ -97,7 +97,7 @@ public class CalendarService
         return dateDayOfWeek == repeatEvent.DayOfWeek.Value;
     }
 
-    private bool CheckDayOfWeekOfMonth(RepeatingEvent repeatEvent, DateOnly date)
+    internal bool CheckDayOfWeekOfMonth(RepeatingEvent repeatEvent, DateOnly date)
     {
         if (!repeatEvent.DayOfWeek.HasValue || string.IsNullOrEmpty(repeatEvent.WeeksOfMonth))
             return false;
@@ -118,13 +118,13 @@ public class CalendarService
         return weeks.Contains(weekOfMonth);
     }
 
-    private int GetWeekOfMonth(DateOnly date)
+    internal int GetWeekOfMonth(DateOnly date)
     {
         // Week 1 = days 1-7, Week 2 = days 8-14, etc.
         return ((date.Day - 1) / 7) + 1;
     }
 
-    private bool CheckInterval(RepeatingEvent repeatEvent, DateOnly date)
+    internal bool CheckInterval(RepeatingEvent repeatEvent, DateOnly date)
     {
         if (!repeatEvent.IntervalDays.HasValue || !repeatEvent.StartDate.HasValue)
             return false;
