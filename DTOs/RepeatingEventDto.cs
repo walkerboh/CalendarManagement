@@ -12,6 +12,8 @@ public class RepeatingEventDto
     public string? WeeksOfMonth { get; set; }
     public int? IntervalDays { get; set; }
     public DateOnly? StartDate { get; set; }
+    public int? Month { get; set; }
+    public int? Day { get; set; }
 }
 
 public class CreateRepeatingEventDto
@@ -32,6 +34,12 @@ public class CreateRepeatingEventDto
     public int? IntervalDays { get; set; }
 
     public DateOnly? StartDate { get; set; }
+
+    [Range(1, 12)]
+    public int? Month { get; set; }
+
+    [Range(1, 31)]
+    public int? Day { get; set; }
 }
 
 public class UpdateRepeatingEventDto
@@ -52,4 +60,10 @@ public class UpdateRepeatingEventDto
     public int? IntervalDays { get; set; }
 
     public DateOnly? StartDate { get; set; }
+
+    [Range(1, 12)]
+    public int? Month { get; set; }
+
+    [Range(1, 31)]
+    public int? Day { get; set; }
 }

@@ -18,18 +18,6 @@ public class CalendarService
     {
         var events = new List<CalendarEventDto>();
 
-        // Get date events that match the month and day
-        var dateEvents = await _context.DateEvents
-            .Where(e => e.Month == date.Month && e.Day == date.Day)
-            .ToListAsync();
-
-        events.AddRange(dateEvents.Select(e => new CalendarEventDto
-        {
-            Name = e.Name,
-            EventType = "DateEvent",
-            SourceId = e.Id
-        }));
-
         // Get waiting events that are due (occurrence date <= today)
         var today = DateOnly.FromDateTime(DateTime.Today);
         var waitingEvents = await _context.WaitingEvents
@@ -62,6 +50,25 @@ public class CalendarService
         return events;
     }
 
+    public async Task<List<CalendarEventDto>> GetDateEventsForDate(DateOnly date)
+    {
+        var events = new List<CalendarEventDto>();
+
+        // Get date events that match the month and day
+        var dateEvents = await _context.DateEvents
+            .Where(e => e.Month == date.Month && e.Day == date.Day)
+            .ToListAsync();
+
+        events.AddRange(dateEvents.Select(e => new CalendarEventDto
+        {
+            Name = e.Name,
+            EventType = "DateEvent",
+            SourceId = e.Id
+        }));
+
+        return events;
+    }
+
     private bool DoesRepeatOnDate(RepeatingEvent repeatEvent, DateOnly date)
     {
         return repeatEvent.RepeatType switch
@@ -69,8 +76,16 @@ public class CalendarService
             RepeatType.DayOfWeek => CheckDayOfWeek(repeatEvent, date),
             RepeatType.DayOfWeekOfMonth => CheckDayOfWeekOfMonth(repeatEvent, date),
             RepeatType.Interval => CheckInterval(repeatEvent, date),
+            RepeatType.Date => CheckDate(repeatEvent, date),
             _ => false
         };
+    }
+
+    private bool CheckDate(RepeatingEvent repeatEvent, DateOnly date)
+    {
+        if (!repeatEvent.Month.HasValue || !repeatEvent.Day.HasValue)
+            return false;
+        return date.Month == repeatEvent.Month.Value && date.Day == repeatEvent.Day.Value;
     }
 
     private bool CheckDayOfWeek(RepeatingEvent repeatEvent, DateOnly date)

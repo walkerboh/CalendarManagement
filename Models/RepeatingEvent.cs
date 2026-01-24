@@ -6,7 +6,8 @@ public enum RepeatType
 {
     DayOfWeek,
     DayOfWeekOfMonth,
-    Interval
+    Interval,
+    Date
 }
 
 public class RepeatingEvent
@@ -31,4 +32,8 @@ public class RepeatingEvent
 
     // For Interval type - the starting date for interval calculation
     public DateOnly? StartDate { get; set; }
+
+    // For Date type - yearly on specific month/day
+    public int? Month { get; set; }  // 1-12
+    public int? Day { get; set; }    // 1-31
 }

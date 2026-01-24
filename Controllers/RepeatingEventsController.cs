@@ -31,7 +31,9 @@ public class RepeatingEventsController : ControllerBase
                 DayOfWeek = e.DayOfWeek,
                 WeeksOfMonth = e.WeeksOfMonth,
                 IntervalDays = e.IntervalDays,
-                StartDate = e.StartDate
+                StartDate = e.StartDate,
+                Month = e.Month,
+                Day = e.Day
             })
             .ToListAsync();
 
@@ -56,7 +58,9 @@ public class RepeatingEventsController : ControllerBase
             DayOfWeek = repeatingEvent.DayOfWeek,
             WeeksOfMonth = repeatingEvent.WeeksOfMonth,
             IntervalDays = repeatingEvent.IntervalDays,
-            StartDate = repeatingEvent.StartDate
+            StartDate = repeatingEvent.StartDate,
+            Month = repeatingEvent.Month,
+            Day = repeatingEvent.Day
         });
     }
 
@@ -70,7 +74,9 @@ public class RepeatingEventsController : ControllerBase
             DayOfWeek = dto.DayOfWeek,
             WeeksOfMonth = dto.WeeksOfMonth,
             IntervalDays = dto.IntervalDays,
-            StartDate = dto.StartDate
+            StartDate = dto.StartDate,
+            Month = dto.Month,
+            Day = dto.Day
         };
 
         _context.RepeatingEvents.Add(repeatingEvent);
@@ -86,7 +92,9 @@ public class RepeatingEventsController : ControllerBase
             DayOfWeek = repeatingEvent.DayOfWeek,
             WeeksOfMonth = repeatingEvent.WeeksOfMonth,
             IntervalDays = repeatingEvent.IntervalDays,
-            StartDate = repeatingEvent.StartDate
+            StartDate = repeatingEvent.StartDate,
+            Month = repeatingEvent.Month,
+            Day = repeatingEvent.Day
         };
 
         return CreatedAtAction(nameof(GetById), new { id = repeatingEvent.Id }, result);
@@ -108,6 +116,8 @@ public class RepeatingEventsController : ControllerBase
         repeatingEvent.WeeksOfMonth = dto.WeeksOfMonth;
         repeatingEvent.IntervalDays = dto.IntervalDays;
         repeatingEvent.StartDate = dto.StartDate;
+        repeatingEvent.Month = dto.Month;
+        repeatingEvent.Day = dto.Day;
 
         await _context.SaveChangesAsync();
 

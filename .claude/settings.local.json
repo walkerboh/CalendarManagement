@@ -3,7 +3,12 @@
     "allow": [
       "Bash(dotnet add:*)",
       "Bash(dotnet add package:*)",
-      "Bash(dotnet ef database:*)"
+      "Bash(dotnet ef database:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet ef migrations:*)",
+      "Bash(dotnet run)",
+      "Bash(curl:*)",
+      "Bash(ping:*)"
     ]
   }
 }

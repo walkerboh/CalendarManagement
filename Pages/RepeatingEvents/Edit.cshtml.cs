@@ -50,6 +50,8 @@ public class EditModel : PageModel
         repeatingEvent.WeeksOfMonth = RepeatingEvent.WeeksOfMonth;
         repeatingEvent.IntervalDays = RepeatingEvent.IntervalDays;
         repeatingEvent.StartDate = RepeatingEvent.StartDate;
+        repeatingEvent.Month = RepeatingEvent.Month;
+        repeatingEvent.Day = RepeatingEvent.Day;
 
         await _context.SaveChangesAsync();
 

@@ -22,6 +22,7 @@
                 <option value="0">Day of Week</option>
                 <option value="1">Day of Week of Month</option>
                 <option value="2">Interval</option>
+                <option value="3">Date (Yearly)</option>
             </select>
             <span asp-validation-for="RepeatingEvent.RepeatType" class="text-danger"></span>
         </div>
@@ -60,6 +61,32 @@
             <span asp-validation-for="RepeatingEvent.StartDate" class="text-danger"></span>
         </div>
 
+        <div class="form-group" id="monthGroup" style="display: none;">
+            <label asp-for="RepeatingEvent.Month">Month</label>
+            <select asp-for="RepeatingEvent.Month" class="form-control">
+                <option value="">-- Select --</option>
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+            </select>
+            <span asp-validation-for="RepeatingEvent.Month" class="text-danger"></span>
+        </div>
+
+        <div class="form-group" id="dayGroup" style="display: none;">
+            <label asp-for="RepeatingEvent.Day">Day</label>
+            <input asp-for="RepeatingEvent.Day" class="form-control" type="number" min="1" max="31" />
+            <span asp-validation-for="RepeatingEvent.Day" class="text-danger"></span>
+        </div>
+
         <div class="form-group">
             <button type="submit" class="btn btn-success">Create</button>
             <a href="/RepeatingEvents" class="btn btn-secondary">Cancel</a>
@@ -74,12 +101,16 @@
         var weeksOfMonthGroup = document.getElementById('weeksOfMonthGroup');
         var intervalDaysGroup = document.getElementById('intervalDaysGroup');
         var startDateGroup = document.getElementById('startDateGroup');
+        var monthGroup = document.getElementById('monthGroup');
+        var dayGroup = document.getElementById('dayGroup');
 
         // Reset all to hidden
         dayOfWeekGroup.style.display = 'none';
         weeksOfMonthGroup.style.display = 'none';
         intervalDaysGroup.style.display = 'none';
         startDateGroup.style.display = 'none';
+        monthGroup.style.display = 'none';
+        dayGroup.style.display = 'none';
 
         if (type === '0') { // DayOfWeek
             dayOfWeekGroup.style.display = 'block';
@@ -89,6 +120,9 @@
         } else if (type === '2') { // Interval
             intervalDaysGroup.style.display = 'block';
             startDateGroup.style.display = 'block';
+        } else if (type === '3') { // Date
+            monthGroup.style.display = 'block';
+            dayGroup.style.display = 'block';
         }
     });
 
