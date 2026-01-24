@@ -1,0 +1,60 @@
+@page
+@model CalendarManagementApi.Pages.RepeatingEvents.IndexModel
+@{
+    ViewData["Title"] = "Repeating Events";
+    var dayNames = new[] { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
+}
+
+<h1>Repeating Events</h1>
+
+<p>
+    <a href="/RepeatingEvents/Create" class="btn btn-success">Create New</a>
+</p>
+
+@if (Model.RepeatingEvents.Any())
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Schedule</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.RepeatingEvents)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.RepeatType</td>
+                    <td>
+                        @switch (item.RepeatType)
+                        {
+                            case RepeatType.DayOfWeek:
+                                @(item.DayOfWeek.HasValue ? $"Every {dayNames[item.DayOfWeek.Value]}" : "Not configured")
+                                break;
+                            case RepeatType.DayOfWeekOfMonth:
+                                var weeks = item.WeeksOfMonth ?? "N/A";
+                                @(item.DayOfWeek.HasValue ? $"{dayNames[item.DayOfWeek.Value]} on weeks {weeks}" : "Not configured")
+                                break;
+                            case RepeatType.Interval:
+                                @(item.IntervalDays.HasValue && item.StartDate.HasValue
+                                    ? $"Every {item.IntervalDays} days from {item.StartDate.Value:yyyy-MM-dd}"
+                                    : "Not configured")
+                                break;
+                        }
+                    </td>
+                    <td>
+                        <a href="/RepeatingEvents/Edit/@item.Id" class="btn btn-primary">Edit</a>
+                        <a href="/RepeatingEvents/Delete/@item.Id" class="btn btn-danger">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No repeating events found. <a href="/RepeatingEvents/Create">Create one</a>.</p>
+}

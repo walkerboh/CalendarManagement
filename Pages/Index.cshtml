@@ -1,0 +1,113 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home";
+}
+
+<h1>Calendar Management</h1>
+
+<p>Welcome to the Calendar Management application. Use this system to manage different types of calendar events.</p>
+
+<div class="card" style="margin-top: 1.5rem; max-width: none; background-color: #e8f4fd;">
+    <h2>Today's Events - @Model.Today.ToString("dddd, MMMM d, yyyy")</h2>
+    @if (Model.TodaysEvents.Any())
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th>Event Name</th>
+                    <th>Type</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var evt in Model.TodaysEvents)
+                {
+                    <tr>
+                        <td>@evt.Name</td>
+                        <td>
+                            @switch (evt.EventType)
+                            {
+                                case "DateEvent":
+                                    <span class="badge" style="background-color: #3498db;">Date Event</span>
+                                    break;
+                                case "WaitingEvent":
+                                    <span class="badge" style="background-color: #e67e22;">Waiting Event</span>
+                                    break;
+                                case "RepeatingEvent":
+                                    <span class="badge" style="background-color: #9b59b6;">Repeating Event</span>
+                                    break;
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>No events scheduled for today.</p>
+    }
+</div>
+
+@if (Model.DueWaitingEvents.Any())
+{
+    <div class="card" style="margin-top: 1.5rem; max-width: none; background-color: #fdf2e8;">
+        <h2>Waiting Events Due</h2>
+        <p>These waiting events are past their occurrence date and need to be rescheduled:</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Event Name</th>
+                    <th>Original Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var evt in Model.DueWaitingEvents)
+                {
+                    <tr>
+                        <td>@evt.Name</td>
+                        <td>@evt.OccurrenceDate.ToString("yyyy-MM-dd")</td>
+                        <td>
+                            <form method="post" asp-page-handler="PostponeWeek" asp-route-id="@evt.Id" style="display: inline;">
+                                <button type="submit" class="btn btn-warning">+7 Days</button>
+                            </form>
+                            <form method="post" asp-page-handler="PostponeMonth" asp-route-id="@evt.Id" style="display: inline;">
+                                <button type="submit" class="btn btn-warning">+1 Month</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+    <div class="card">
+        <h2>Date Events</h2>
+        <p>Events that occur on a specific date each year (e.g., birthdays, anniversaries).</p>
+        <a href="/DateEvents" class="btn btn-primary">Manage Date Events</a>
+    </div>
+
+    <div class="card">
+        <h2>Waiting Events</h2>
+        <p>Events that occur once and then need to be manually rescheduled after completion.</p>
+        <a href="/WaitingEvents" class="btn btn-primary">Manage Waiting Events</a>
+    </div>
+
+    <div class="card">
+        <h2>Repeating Events</h2>
+        <p>Events that repeat on a schedule (weekly, specific weeks, or at intervals).</p>
+        <a href="/RepeatingEvents" class="btn btn-primary">Manage Repeating Events</a>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 2rem; max-width: none;">
+    <h2>API Endpoint</h2>
+    <p>External applications can fetch events for a specific date using:</p>
+    <code style="background: #f4f4f4; padding: 0.5rem; display: block; margin-top: 0.5rem;">
+        GET /api/calendar/{date}
+    </code>
+    <p style="margin-top: 0.5rem;">Example: <code>/api/calendar/2024-12-25</code></p>
+</div>

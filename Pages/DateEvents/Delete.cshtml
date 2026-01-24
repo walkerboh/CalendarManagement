@@ -1,0 +1,24 @@
+@page "{id:int}"
+@model CalendarManagementApi.Pages.DateEvents.DeleteModel
+@{
+    ViewData["Title"] = "Delete Date Event";
+}
+
+<h1>Delete Date Event</h1>
+
+<div class="card">
+    <h3>Are you sure you want to delete this?</h3>
+
+    <dl>
+        <dt>Name</dt>
+        <dd>@Model.DateEvent.Name</dd>
+        <dt>Date</dt>
+        <dd>@($"{Model.DateEvent.Month:D2}/{Model.DateEvent.Day:D2}")</dd>
+    </dl>
+
+    <form method="post">
+        <input type="hidden" asp-for="DateEvent.Id" />
+        <button type="submit" class="btn btn-danger">Delete</button>
+        <a href="/DateEvents" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>

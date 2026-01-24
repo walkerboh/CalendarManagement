@@ -1,0 +1,41 @@
+@page
+@model CalendarManagementApi.Pages.DateEvents.IndexModel
+@{
+    ViewData["Title"] = "Date Events";
+}
+
+<h1>Date Events</h1>
+
+<p>
+    <a href="/DateEvents/Create" class="btn btn-success">Create New</a>
+</p>
+
+@if (Model.DateEvents.Any())
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.DateEvents)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@($"{item.Month:D2}/{item.Day:D2}")</td>
+                    <td>
+                        <a href="/DateEvents/Edit/@item.Id" class="btn btn-primary">Edit</a>
+                        <a href="/DateEvents/Delete/@item.Id" class="btn btn-danger">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No date events found. <a href="/DateEvents/Create">Create one</a>.</p>
+}
