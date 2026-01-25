@@ -28,7 +28,8 @@ public class CalendarService
         {
             Name = e.Name,
             EventType = "WaitingEvent",
-            SourceId = e.Id
+            SourceId = e.Id,
+            Image = e.Image
         }));
 
         // Get repeating events that occur on this date
@@ -42,7 +43,8 @@ public class CalendarService
                 {
                     Name = repeatEvent.Name,
                     EventType = "RepeatingEvent",
-                    SourceId = repeatEvent.Id
+                    SourceId = repeatEvent.Id,
+                    Image = repeatEvent.Image
                 });
             }
         }
@@ -63,7 +65,8 @@ public class CalendarService
         {
             Name = e.Name,
             EventType = "DateEvent",
-            SourceId = e.Id
+            SourceId = e.Id,
+            TextColor = e.TextColor
         }));
 
         return events;

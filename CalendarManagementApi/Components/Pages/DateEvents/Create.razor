@@ -43,6 +43,15 @@
         </div>
 
         <div class="form-group">
+            <label for="textColor">Text Color</label>
+            <InputSelect id="textColor" @bind-Value="DateEvent.TextColor" class="form-control">
+                <option value="@TextColor.Black">Black</option>
+                <option value="@TextColor.Red">Red</option>
+            </InputSelect>
+            <ValidationMessage For="() => DateEvent.TextColor" class="text-danger" />
+        </div>
+
+        <div class="form-group">
             <button type="submit" class="btn btn-success">Create</button>
             <a href="/dateevents" class="btn btn-secondary">Cancel</a>
         </div>

@@ -46,6 +46,7 @@ public class RepeatingEventService : IRepeatingEventService
         existing.StartDate = repeatingEvent.StartDate;
         existing.Month = repeatingEvent.Month;
         existing.Day = repeatingEvent.Day;
+        existing.Image = repeatingEvent.Image;
 
         await _context.SaveChangesAsync();
         return true;

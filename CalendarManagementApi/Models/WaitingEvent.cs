@@ -11,4 +11,7 @@ public class WaitingEvent
     public string Name { get; set; } = string.Empty;
 
     public DateOnly OccurrenceDate { get; set; }
+
+    [MaxLength(100)]
+    public string? Image { get; set; }
 }

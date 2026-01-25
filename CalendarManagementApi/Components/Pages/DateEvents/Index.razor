@@ -16,6 +16,7 @@
             <tr>
                 <th>Name</th>
                 <th>Date</th>
+                <th>Text Color</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -25,6 +26,7 @@
                 <tr>
                     <td>@item.Name</td>
                     <td>@($"{item.Month:D2}/{item.Day:D2}")</td>
+                    <td>@item.TextColor</td>
                     <td>
                         <a href="/dateevents/edit/@item.Id" class="btn btn-primary">Edit</a>
                         <a href="/dateevents/delete/@item.Id" class="btn btn-danger">Delete</a>

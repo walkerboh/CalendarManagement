@@ -100,18 +100,49 @@
 </div>
 
 <div class="card" style="margin-top: 2rem; max-width: none;">
-    <h2>API Endpoint</h2>
-    <p>External applications can fetch events for a specific date using:</p>
-    <code style="background: #f4f4f4; padding: 0.5rem; display: block; margin-top: 0.5rem;">
-        GET /api/calendar/{date}
-    </code>
-    <p style="margin-top: 0.5rem;">Example: <code>/api/calendar/2024-12-25</code></p>
+    <h2>API Endpoints</h2>
+    <p>External applications can fetch events for a specific date using these endpoints:</p>
+
+    <div style="margin-top: 1rem;">
+        <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">GET /api/calendar/{date}</h3>
+        <p style="margin: 0.25rem 0;">Returns waiting events (past due) and repeating events that match the specified date.</p>
+        <code style="background: #f4f4f4; padding: 0.5rem; display: block;">Example: /api/calendar/2024-12-25</code>
+    </div>
+
+    <div style="margin-top: 1rem;">
+        <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">GET /api/calendar/dates/{date}</h3>
+        <p style="margin: 0.25rem 0;">Returns date events that match the month and day of the specified date.</p>
+        <code style="background: #f4f4f4; padding: 0.5rem; display: block;">Example: /api/calendar/dates/2024-12-25</code>
+    </div>
+
+    <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #ddd;">
+        <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Test Endpoints</h3>
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label for="testDate">Select Date:</label>
+            <input type="date" id="testDate" @bind="TestDate" class="form-control" style="max-width: 200px;" />
+        </div>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="btn btn-primary" @onclick="TestCalendarEndpoint">Test /api/calendar/{date}</button>
+            <button class="btn btn-primary" @onclick="TestDateEventsEndpoint">Test /api/calendar/dates/{date}</button>
+        </div>
+
+        @if (ApiTestResult != null)
+        {
+            <div style="margin-top: 1rem;">
+                <strong>Request:</strong> <code>@ApiTestUrl</code>
+                <pre style="background: #f4f4f4; padding: 1rem; margin-top: 0.5rem; overflow-x: auto; border-radius: 4px;">@ApiTestResult</pre>
+            </div>
+        }
+    </div>
 </div>
 
 @code {
     private List<CalendarManagementApi.DTOs.CalendarEventDto> TodaysEvents { get; set; } = new();
     private List<WaitingEvent> DueWaitingEvents { get; set; } = new();
     private DateOnly Today { get; set; }
+    private DateTime TestDate { get; set; } = DateTime.Today;
+    private string? ApiTestResult { get; set; }
+    private string? ApiTestUrl { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -137,5 +168,21 @@
     {
         await WaitingEventService.PostponeMonthAsync(id);
         await LoadData();
+    }
+
+    private async Task TestCalendarEndpoint()
+    {
+        var date = DateOnly.FromDateTime(TestDate);
+        ApiTestUrl = $"GET /api/calendar/{date:yyyy-MM-dd}";
+        var results = await CalendarService.GetEventsForDate(date);
+        ApiTestResult = System.Text.Json.JsonSerializer.Serialize(results, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+    }
+
+    private async Task TestDateEventsEndpoint()
+    {
+        var date = DateOnly.FromDateTime(TestDate);
+        ApiTestUrl = $"GET /api/calendar/dates/{date:yyyy-MM-dd}";
+        var results = await CalendarService.GetDateEventsForDate(date);
+        ApiTestResult = System.Text.Json.JsonSerializer.Serialize(results, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
     }
 }

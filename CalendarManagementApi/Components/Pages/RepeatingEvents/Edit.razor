@@ -24,6 +24,12 @@ else
             </div>
 
             <div class="form-group">
+                <label for="image">Image</label>
+                <InputText id="image" @bind-Value="RepeatingEvent.Image" class="form-control" maxlength="100" />
+                <ValidationMessage For="() => RepeatingEvent.Image" class="text-danger" />
+            </div>
+
+            <div class="form-group">
                 <label for="repeatType">Repeat Type</label>
                 <InputSelect id="repeatType" @bind-Value="RepeatingEvent.RepeatType" class="form-control">
                     <option value="@RepeatType.DayOfWeek">Day of Week</option>

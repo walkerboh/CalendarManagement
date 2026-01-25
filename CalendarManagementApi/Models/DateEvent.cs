@@ -2,6 +2,12 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CalendarManagementApi.Models;
 
+public enum TextColor
+{
+    Black,
+    Red
+}
+
 public class DateEvent
 {
     public int Id { get; set; }
@@ -15,4 +21,7 @@ public class DateEvent
 
     [Range(1, 31)]
     public int Day { get; set; }
+
+    [Required]
+    public TextColor TextColor { get; set; } = TextColor.Black;
 }

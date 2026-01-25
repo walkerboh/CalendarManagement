@@ -15,6 +15,7 @@
         <thead>
             <tr>
                 <th>Name</th>
+                <th>Image</th>
                 <th>Occurrence Date</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -26,6 +27,7 @@
                 var isPastDue = item.OccurrenceDate <= DateOnly.FromDateTime(DateTime.Today);
                 <tr>
                     <td>@item.Name</td>
+                    <td>@(item.Image ?? "-")</td>
                     <td>@item.OccurrenceDate.ToString("yyyy-MM-dd")</td>
                     <td>
                         @if (isPastDue)

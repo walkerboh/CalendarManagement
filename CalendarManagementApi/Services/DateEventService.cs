@@ -42,6 +42,7 @@ public class DateEventService : IDateEventService
         existing.Name = dateEvent.Name;
         existing.Month = dateEvent.Month;
         existing.Day = dateEvent.Day;
+        existing.TextColor = dateEvent.TextColor;
 
         await _context.SaveChangesAsync();
         return true;

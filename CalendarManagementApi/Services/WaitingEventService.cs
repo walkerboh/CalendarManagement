@@ -49,6 +49,7 @@ public class WaitingEventService : IWaitingEventService
 
         existing.Name = waitingEvent.Name;
         existing.OccurrenceDate = waitingEvent.OccurrenceDate;
+        existing.Image = waitingEvent.Image;
 
         await _context.SaveChangesAsync();
         return true;

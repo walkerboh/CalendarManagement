@@ -36,4 +36,7 @@ public class RepeatingEvent
     // For Date type - yearly on specific month/day
     public int? Month { get; set; }  // 1-12
     public int? Day { get; set; }    // 1-31
+
+    [MaxLength(100)]
+    public string? Image { get; set; }
 }
