@@ -1,0 +1,49 @@
+@page "/dateevents"
+@inject IDateEventService DateEventService
+
+<PageTitle>Date Events - Calendar Management</PageTitle>
+
+<h1>Date Events</h1>
+
+<p>
+    <a href="/dateevents/create" class="btn btn-success">Create New</a>
+</p>
+
+@if (DateEvents.Any())
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in DateEvents)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@($"{item.Month:D2}/{item.Day:D2}")</td>
+                    <td>
+                        <a href="/dateevents/edit/@item.Id" class="btn btn-primary">Edit</a>
+                        <a href="/dateevents/delete/@item.Id" class="btn btn-danger">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No date events found. <a href="/dateevents/create">Create one</a>.</p>
+}
+
+@code {
+    private List<DateEvent> DateEvents { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        DateEvents = await DateEventService.GetAllAsync();
+    }
+}

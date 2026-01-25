@@ -1,0 +1,60 @@
+@page "/dateevents/create"
+@inject IDateEventService DateEventService
+@inject NavigationManager Navigation
+
+<PageTitle>Create Date Event - Calendar Management</PageTitle>
+
+<h1>Create Date Event</h1>
+
+<div class="card">
+    <EditForm Model="DateEvent" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="alert alert-danger" />
+
+        <div class="form-group">
+            <label for="name">Name</label>
+            <InputText id="name" @bind-Value="DateEvent.Name" class="form-control" />
+            <ValidationMessage For="() => DateEvent.Name" class="text-danger" />
+        </div>
+
+        <div class="form-group">
+            <label for="month">Month</label>
+            <InputSelect id="month" @bind-Value="DateEvent.Month" class="form-control">
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+            </InputSelect>
+            <ValidationMessage For="() => DateEvent.Month" class="text-danger" />
+        </div>
+
+        <div class="form-group">
+            <label for="day">Day</label>
+            <InputNumber id="day" @bind-Value="DateEvent.Day" class="form-control" min="1" max="31" />
+            <ValidationMessage For="() => DateEvent.Day" class="text-danger" />
+        </div>
+
+        <div class="form-group">
+            <button type="submit" class="btn btn-success">Create</button>
+            <a href="/dateevents" class="btn btn-secondary">Cancel</a>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    private DateEvent DateEvent { get; set; } = new() { Month = 1, Day = 1 };
+
+    private async Task HandleSubmit()
+    {
+        await DateEventService.CreateAsync(DateEvent);
+        Navigation.NavigateTo("/dateevents");
+    }
+}

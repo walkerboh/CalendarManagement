@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using CalendarManagementApi.Data;
 using CalendarManagementApi.Services;
+using CalendarManagementApi.Components;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -21,9 +22,13 @@ try
         options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
     builder.Services.AddScoped<CalendarService>();
+    builder.Services.AddScoped<IDateEventService, DateEventService>();
+    builder.Services.AddScoped<IWaitingEventService, WaitingEventService>();
+    builder.Services.AddScoped<IRepeatingEventService, RepeatingEventService>();
 
     builder.Services.AddControllers();
-    builder.Services.AddRazorPages();
+    builder.Services.AddRazorComponents()
+        .AddInteractiveServerComponents();
     builder.Services.AddOpenApi();
 
     var app = builder.Build();
@@ -37,10 +42,12 @@ try
     app.UseHttpsRedirection();
     app.UseStaticFiles();
     app.UseRouting();
+    app.UseAntiforgery();
     app.UseAuthorization();
 
     app.MapControllers();
-    app.MapRazorPages();
+    app.MapRazorComponents<App>()
+        .AddInteractiveServerRenderMode();
 
     app.Run();
 }

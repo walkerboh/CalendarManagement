@@ -1,0 +1,63 @@
+@page "/waitingevents/edit/{Id:int}"
+@inject IWaitingEventService WaitingEventService
+@inject NavigationManager Navigation
+
+<PageTitle>Edit Waiting Event - Calendar Management</PageTitle>
+
+<h1>Edit Waiting Event</h1>
+
+@if (WaitingEvent == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="card">
+        <EditForm Model="WaitingEvent" OnValidSubmit="HandleSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="alert alert-danger" />
+
+            <div class="form-group">
+                <label for="name">Name</label>
+                <InputText id="name" @bind-Value="WaitingEvent.Name" class="form-control" />
+                <ValidationMessage For="() => WaitingEvent.Name" class="text-danger" />
+            </div>
+
+            <div class="form-group">
+                <label for="occurrenceDate">Occurrence Date</label>
+                <InputDate id="occurrenceDate" @bind-Value="WaitingEvent.OccurrenceDate" class="form-control" />
+                <ValidationMessage For="() => WaitingEvent.OccurrenceDate" class="text-danger" />
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a href="/waitingevents" class="btn btn-secondary">Cancel</a>
+            </div>
+        </EditForm>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private WaitingEvent? WaitingEvent { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        WaitingEvent = await WaitingEventService.GetByIdAsync(Id);
+        if (WaitingEvent == null)
+        {
+            Navigation.NavigateTo("/waitingevents");
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (WaitingEvent != null)
+        {
+            await WaitingEventService.UpdateAsync(WaitingEvent);
+            Navigation.NavigateTo("/waitingevents");
+        }
+    }
+}

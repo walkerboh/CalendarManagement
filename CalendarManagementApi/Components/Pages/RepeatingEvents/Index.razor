@@ -1,0 +1,74 @@
+@page "/repeatingevents"
+@inject IRepeatingEventService RepeatingEventService
+
+<PageTitle>Repeating Events - Calendar Management</PageTitle>
+
+<h1>Repeating Events</h1>
+
+<p>
+    <a href="/repeatingevents/create" class="btn btn-success">Create New</a>
+</p>
+
+@if (RepeatingEvents.Any())
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Schedule</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in RepeatingEvents)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.RepeatType</td>
+                    <td>@GetScheduleDescription(item)</td>
+                    <td>
+                        <a href="/repeatingevents/edit/@item.Id" class="btn btn-primary">Edit</a>
+                        <a href="/repeatingevents/delete/@item.Id" class="btn btn-danger">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No repeating events found. <a href="/repeatingevents/create">Create one</a>.</p>
+}
+
+@code {
+    private static readonly string[] DayNames = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
+    private static readonly string[] MonthNames = { "", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" };
+
+    private List<RepeatingEvent> RepeatingEvents { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        RepeatingEvents = await RepeatingEventService.GetAllAsync();
+    }
+
+    private string GetScheduleDescription(RepeatingEvent item)
+    {
+        return item.RepeatType switch
+        {
+            RepeatType.DayOfWeek => item.DayOfWeek.HasValue
+                ? $"Every {DayNames[item.DayOfWeek.Value]}"
+                : "Not configured",
+            RepeatType.DayOfWeekOfMonth => item.DayOfWeek.HasValue
+                ? $"{DayNames[item.DayOfWeek.Value]} on weeks {item.WeeksOfMonth ?? "N/A"}"
+                : "Not configured",
+            RepeatType.Interval => item.IntervalDays.HasValue && item.StartDate.HasValue
+                ? $"Every {item.IntervalDays} days from {item.StartDate.Value:yyyy-MM-dd}"
+                : "Not configured",
+            RepeatType.Date => item.Month.HasValue && item.Day.HasValue
+                ? $"Every {MonthNames[item.Month.Value]} {item.Day}"
+                : "Not configured",
+            _ => "Unknown"
+        };
+    }
+}

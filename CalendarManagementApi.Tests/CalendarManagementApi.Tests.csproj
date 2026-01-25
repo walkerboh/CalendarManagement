@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CalendarManagementApi.csproj" />
+    <ProjectReference Include="..\CalendarManagementApi\CalendarManagementApi.csproj" />
   </ItemGroup>
 
 </Project>

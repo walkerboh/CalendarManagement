@@ -1,0 +1,41 @@
+@page "/waitingevents/create"
+@inject IWaitingEventService WaitingEventService
+@inject NavigationManager Navigation
+
+<PageTitle>Create Waiting Event - Calendar Management</PageTitle>
+
+<h1>Create Waiting Event</h1>
+
+<div class="card">
+    <EditForm Model="WaitingEvent" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="alert alert-danger" />
+
+        <div class="form-group">
+            <label for="name">Name</label>
+            <InputText id="name" @bind-Value="WaitingEvent.Name" class="form-control" />
+            <ValidationMessage For="() => WaitingEvent.Name" class="text-danger" />
+        </div>
+
+        <div class="form-group">
+            <label for="occurrenceDate">Occurrence Date</label>
+            <InputDate id="occurrenceDate" @bind-Value="WaitingEvent.OccurrenceDate" class="form-control" />
+            <ValidationMessage For="() => WaitingEvent.OccurrenceDate" class="text-danger" />
+        </div>
+
+        <div class="form-group">
+            <button type="submit" class="btn btn-success">Create</button>
+            <a href="/waitingevents" class="btn btn-secondary">Cancel</a>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    private WaitingEvent WaitingEvent { get; set; } = new() { OccurrenceDate = DateOnly.FromDateTime(DateTime.Today) };
+
+    private async Task HandleSubmit()
+    {
+        await WaitingEventService.CreateAsync(WaitingEvent);
+        Navigation.NavigateTo("/waitingevents");
+    }
+}

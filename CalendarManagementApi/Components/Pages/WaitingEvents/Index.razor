@@ -1,0 +1,83 @@
+@page "/waitingevents"
+@inject IWaitingEventService WaitingEventService
+
+<PageTitle>Waiting Events - Calendar Management</PageTitle>
+
+<h1>Waiting Events</h1>
+
+<p>
+    <a href="/waitingevents/create" class="btn btn-success">Create New</a>
+</p>
+
+@if (WaitingEvents.Any())
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Occurrence Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in WaitingEvents)
+            {
+                var isPastDue = item.OccurrenceDate <= DateOnly.FromDateTime(DateTime.Today);
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.OccurrenceDate.ToString("yyyy-MM-dd")</td>
+                    <td>
+                        @if (isPastDue)
+                        {
+                            <span class="badge badge-warning">Past Due</span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-success">Scheduled</span>
+                        }
+                    </td>
+                    <td>
+                        @if (isPastDue)
+                        {
+                            <button class="btn btn-warning" @onclick="() => PostponeWeek(item.Id)">+7 Days</button>
+                            <button class="btn btn-warning" @onclick="() => PostponeMonth(item.Id)">+1 Month</button>
+                        }
+                        <a href="/waitingevents/edit/@item.Id" class="btn btn-primary">Edit</a>
+                        <a href="/waitingevents/delete/@item.Id" class="btn btn-danger">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No waiting events found. <a href="/waitingevents/create">Create one</a>.</p>
+}
+
+@code {
+    private List<WaitingEvent> WaitingEvents { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        WaitingEvents = await WaitingEventService.GetAllAsync();
+    }
+
+    private async Task PostponeWeek(int id)
+    {
+        await WaitingEventService.PostponeWeekAsync(id);
+        await LoadData();
+    }
+
+    private async Task PostponeMonth(int id)
+    {
+        await WaitingEventService.PostponeMonthAsync(id);
+        await LoadData();
+    }
+}
