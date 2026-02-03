@@ -1,31 +1,31 @@
-@page "/dateevents/edit/{Id:int}"
-@inject IDateEventService DateEventService
+@page "/messageoftheday/edit/{Id:int}"
+@inject IMessageOfTheDayService MessageOfTheDayService
 @inject NavigationManager Navigation
 
-<PageTitle>Edit Date Event - Calendar Management</PageTitle>
+<PageTitle>Edit Message of the Day - Calendar Management</PageTitle>
 
-<h1>Edit Date Event</h1>
+<h1>Edit Message of the Day</h1>
 
-@if (DateEvent == null)
+@if (Motd == null)
 {
     <p>Loading...</p>
 }
 else
 {
     <div class="card">
-        <EditForm Model="DateEvent" OnValidSubmit="HandleSubmit">
+        <EditForm Model="Motd" OnValidSubmit="HandleSubmit">
             <DataAnnotationsValidator />
             <ValidationSummary class="alert alert-danger" />
 
             <div class="form-group">
-                <label for="name">Name</label>
-                <InputText id="name" @bind-Value="DateEvent.Name" class="form-control" />
-                <ValidationMessage For="() => DateEvent.Name" class="text-danger" />
+                <label for="message">Message</label>
+                <InputText id="message" @bind-Value="Motd.Message" class="form-control" />
+                <ValidationMessage For="() => Motd.Message" class="text-danger" />
             </div>
 
             <div class="form-group">
                 <label for="month">Month</label>
-                <InputSelect id="month" @bind-Value="DateEvent.Month" class="form-control">
+                <InputSelect id="month" @bind-Value="Motd.Month" class="form-control">
                     <option value="1">January</option>
                     <option value="2">February</option>
                     <option value="3">March</option>
@@ -39,27 +39,27 @@ else
                     <option value="11">November</option>
                     <option value="12">December</option>
                 </InputSelect>
-                <ValidationMessage For="() => DateEvent.Month" class="text-danger" />
+                <ValidationMessage For="() => Motd.Month" class="text-danger" />
             </div>
 
             <div class="form-group">
                 <label for="day">Day</label>
-                <InputNumber id="day" @bind-Value="DateEvent.Day" class="form-control" min="1" max="31" />
-                <ValidationMessage For="() => DateEvent.Day" class="text-danger" />
+                <InputNumber id="day" @bind-Value="Motd.Day" class="form-control" min="1" max="31" />
+                <ValidationMessage For="() => Motd.Day" class="text-danger" />
             </div>
 
             <div class="form-group">
                 <label for="textColor">Text Color</label>
-                <InputSelect id="textColor" @bind-Value="DateEvent.TextColor" class="form-control">
+                <InputSelect id="textColor" @bind-Value="Motd.TextColor" class="form-control">
                     <option value="@TextColor.Black">Black</option>
                     <option value="@TextColor.Red">Red</option>
                 </InputSelect>
-                <ValidationMessage For="() => DateEvent.TextColor" class="text-danger" />
+                <ValidationMessage For="() => Motd.TextColor" class="text-danger" />
             </div>
 
             <div class="form-group">
                 <button type="submit" class="btn btn-primary">Save</button>
-                <a href="/dateevents" class="btn btn-secondary">Cancel</a>
+                <a href="/messageoftheday" class="btn btn-secondary">Cancel</a>
             </div>
         </EditForm>
     </div>
@@ -69,23 +69,23 @@ else
     [Parameter]
     public int Id { get; set; }
 
-    private DateEvent? DateEvent { get; set; }
+    private CalendarManagementApi.Models.MessageOfTheDay? Motd { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        DateEvent = await DateEventService.GetByIdAsync(Id);
-        if (DateEvent == null)
+        Motd = await MessageOfTheDayService.GetByIdAsync(Id);
+        if (Motd == null)
         {
-            Navigation.NavigateTo("/dateevents");
+            Navigation.NavigateTo("/messageoftheday");
         }
     }
 
     private async Task HandleSubmit()
     {
-        if (DateEvent != null)
+        if (Motd != null)
         {
-            await DateEventService.UpdateAsync(DateEvent);
-            Navigation.NavigateTo("/dateevents");
+            await MessageOfTheDayService.UpdateAsync(Motd);
+            Navigation.NavigateTo("/messageoftheday");
         }
     }
 }

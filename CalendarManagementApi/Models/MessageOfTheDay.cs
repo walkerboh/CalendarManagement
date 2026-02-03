@@ -1,20 +1,22 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace CalendarManagementApi.Models;
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum TextColor
 {
     Black,
     Red
 }
 
-public class DateEvent
+public class MessageOfTheDay
 {
     public int Id { get; set; }
 
     [Required]
     [MaxLength(200)]
-    public string Name { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
 
     [Range(1, 12)]
     public int Month { get; set; }

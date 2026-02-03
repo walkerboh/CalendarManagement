@@ -528,18 +528,18 @@ public class CalendarServiceTests
     }
 
     [Test]
-    public async Task GetEventsForDate_DoesNotReturnDateEvents()
+    public async Task GetEventsForDate_DoesNotReturnMessagesOfTheDay()
     {
         var context = TestDbContextFactory.Create();
         var service = new CalendarService(context);
 
-        var dateEvent = new DateEvent
+        var motd = new MessageOfTheDay
         {
-            Name = "Birthday",
+            Message = "Birthday",
             Month = 1,
             Day = 24
         };
-        context.DateEvents.Add(dateEvent);
+        context.MessagesOfTheDay.Add(motd);
         await context.SaveChangesAsync();
 
         var result = await service.GetEventsForDate(new DateOnly(2026, 1, 24));
@@ -560,58 +560,52 @@ public class CalendarServiceTests
 
     #endregion
 
-    #region GetDateEventsForDate Tests
+    #region GetMotdForDate Tests
 
     [Test]
-    public async Task GetDateEventsForDate_ReturnsMatchingDateEvents()
+    public async Task GetMotdForDate_ReturnsMatchingMessages()
     {
         var context = TestDbContextFactory.Create();
         var service = new CalendarService(context);
 
-        var birthday = new DateEvent
+        var birthday = new MessageOfTheDay
         {
-            Name = "Birthday",
+            Message = "Birthday",
             Month = 7,
             Day = 4
         };
-        var anniversary = new DateEvent
+        var otherMessage = new MessageOfTheDay
         {
-            Name = "Anniversary",
-            Month = 7,
-            Day = 4
-        };
-        var otherEvent = new DateEvent
-        {
-            Name = "Other",
+            Message = "Other",
             Month = 8,
             Day = 15
         };
-        context.DateEvents.AddRange(birthday, anniversary, otherEvent);
+        context.MessagesOfTheDay.AddRange(birthday, otherMessage);
         await context.SaveChangesAsync();
 
-        var result = await service.GetDateEventsForDate(new DateOnly(2026, 7, 4));
+        var result = await service.GetMotdForDate(new DateOnly(2026, 7, 4));
 
-        Assert.That(result, Has.Count.EqualTo(2));
-        Assert.That(result.Select(e => e.Name), Is.EquivalentTo(new[] { "Birthday", "Anniversary" }));
-        Assert.That(result.All(e => e.EventType == "DateEvent"), Is.True);
+        Assert.That(result, Has.Count.EqualTo(1));
+        Assert.That(result.Select(e => e.Name), Is.EquivalentTo(new[] { "Birthday" }));
+        Assert.That(result.All(e => e.EventType == "MessageOfTheDay"), Is.True);
     }
 
     [Test]
-    public async Task GetDateEventsForDate_ReturnsEmptyListWhenNoMatches()
+    public async Task GetMotdForDate_ReturnsEmptyListWhenNoMatches()
     {
         var context = TestDbContextFactory.Create();
         var service = new CalendarService(context);
 
-        var dateEvent = new DateEvent
+        var motd = new MessageOfTheDay
         {
-            Name = "Birthday",
+            Message = "Birthday",
             Month = 7,
             Day = 4
         };
-        context.DateEvents.Add(dateEvent);
+        context.MessagesOfTheDay.Add(motd);
         await context.SaveChangesAsync();
 
-        var result = await service.GetDateEventsForDate(new DateOnly(2026, 8, 15));
+        var result = await service.GetMotdForDate(new DateOnly(2026, 8, 15));
 
         Assert.That(result, Is.Empty);
     }

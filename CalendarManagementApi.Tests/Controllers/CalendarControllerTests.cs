@@ -57,22 +57,22 @@ public class CalendarControllerTests
     }
 
     [Test]
-    public async Task GetDateEventsForDate_Returns200WithDateEvents()
+    public async Task GetMotdForDate_Returns200WithMessages()
     {
         var context = TestDbContextFactory.Create();
         var service = new CalendarService(context);
         var mockLogger = new Mock<ILogger<CalendarController>>();
         var controller = new CalendarController(service, mockLogger.Object);
 
-        context.DateEvents.Add(new DateEvent
+        context.MessagesOfTheDay.Add(new MessageOfTheDay
         {
-            Name = "Birthday",
+            Message = "Birthday",
             Month = 7,
             Day = 4
         });
         await context.SaveChangesAsync();
 
-        var result = await controller.GetDateEventsForDate(new DateOnly(2026, 7, 4));
+        var result = await controller.GetMotdForDate(new DateOnly(2026, 7, 4));
 
         Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
         var okResult = (OkObjectResult)result.Result!;
@@ -80,22 +80,22 @@ public class CalendarControllerTests
     }
 
     [Test]
-    public async Task GetDateEventsForDate_ReturnsEmptyListWhenNoMatches()
+    public async Task GetMotdForDate_ReturnsEmptyListWhenNoMatches()
     {
         var context = TestDbContextFactory.Create();
         var service = new CalendarService(context);
         var mockLogger = new Mock<ILogger<CalendarController>>();
         var controller = new CalendarController(service, mockLogger.Object);
 
-        context.DateEvents.Add(new DateEvent
+        context.MessagesOfTheDay.Add(new MessageOfTheDay
         {
-            Name = "Birthday",
+            Message = "Birthday",
             Month = 7,
             Day = 4
         });
         await context.SaveChangesAsync();
 
-        var result = await controller.GetDateEventsForDate(new DateOnly(2026, 8, 15));
+        var result = await controller.GetMotdForDate(new DateOnly(2026, 8, 15));
 
         Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
     }

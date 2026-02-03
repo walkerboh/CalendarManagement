@@ -9,7 +9,18 @@ public class CalendarDbContext : DbContext
     {
     }
 
-    public DbSet<DateEvent> DateEvents => Set<DateEvent>();
+    public DbSet<MessageOfTheDay> MessagesOfTheDay => Set<MessageOfTheDay>();
     public DbSet<WaitingEvent> WaitingEvents => Set<WaitingEvent>();
     public DbSet<RepeatingEvent> RepeatingEvents => Set<RepeatingEvent>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<MessageOfTheDay>(entity =>
+        {
+            entity.ToTable("MessagesOfTheDay");
+            entity.HasIndex(e => new { e.Month, e.Day }).IsUnique();
+        });
+    }
 }

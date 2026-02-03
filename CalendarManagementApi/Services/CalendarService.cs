@@ -52,19 +52,19 @@ public class CalendarService
         return events;
     }
 
-    public async Task<List<CalendarEventDto>> GetDateEventsForDate(DateOnly date)
+    public async Task<List<CalendarEventDto>> GetMotdForDate(DateOnly date)
     {
         var events = new List<CalendarEventDto>();
 
-        // Get date events that match the month and day
-        var dateEvents = await _context.DateEvents
+        // Get messages of the day that match the month and day
+        var messages = await _context.MessagesOfTheDay
             .Where(e => e.Month == date.Month && e.Day == date.Day)
             .ToListAsync();
 
-        events.AddRange(dateEvents.Select(e => new CalendarEventDto
+        events.AddRange(messages.Select(e => new CalendarEventDto
         {
-            Name = e.Name,
-            EventType = "DateEvent",
+            Name = e.Message,
+            EventType = "MessageOfTheDay",
             SourceId = e.Id,
             TextColor = e.TextColor
         }));

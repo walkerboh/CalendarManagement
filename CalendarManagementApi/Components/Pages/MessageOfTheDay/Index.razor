@@ -1,0 +1,51 @@
+@page "/messageoftheday"
+@inject IMessageOfTheDayService MessageOfTheDayService
+
+<PageTitle>Messages of the Day - Calendar Management</PageTitle>
+
+<h1>Messages of the Day</h1>
+
+<p>
+    <a href="/messageoftheday/create" class="btn btn-success">Create New</a>
+</p>
+
+@if (MessagesOfTheDay.Any())
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Message</th>
+                <th>Date</th>
+                <th>Text Color</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in MessagesOfTheDay)
+            {
+                <tr>
+                    <td data-label="Message">@item.Message</td>
+                    <td data-label="Date">@($"{item.Month:D2}/{item.Day:D2}")</td>
+                    <td data-label="Text Color">@item.TextColor</td>
+                    <td data-label="Actions">
+                        <a href="/messageoftheday/edit/@item.Id" class="btn btn-primary">Edit</a>
+                        <a href="/messageoftheday/delete/@item.Id" class="btn btn-danger">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No messages of the day found. <a href="/messageoftheday/create">Create one</a>.</p>
+}
+
+@code {
+    private List<CalendarManagementApi.Models.MessageOfTheDay> MessagesOfTheDay { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        MessagesOfTheDay = await MessageOfTheDayService.GetAllAsync();
+    }
+}

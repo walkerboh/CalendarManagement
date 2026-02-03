@@ -29,14 +29,14 @@ public class CalendarController : ControllerBase
         return Ok(events);
     }
 
-    [HttpGet("dates/{date}")]
-    public async Task<ActionResult<IEnumerable<CalendarEventDto>>> GetDateEventsForDate(DateOnly date)
+    [HttpGet("motd/{date}")]
+    public async Task<ActionResult<IEnumerable<CalendarEventDto>>> GetMotdForDate(DateOnly date)
     {
-        _logger.LogInformation("Fetching date events for date: {Date}", date);
+        _logger.LogInformation("Fetching messages of the day for date: {Date}", date);
 
-        var events = await _calendarService.GetDateEventsForDate(date);
+        var events = await _calendarService.GetMotdForDate(date);
 
-        _logger.LogInformation("Found {Count} date events for date {Date}", events.Count, date);
+        _logger.LogInformation("Found {Count} messages of the day for date {Date}", events.Count, date);
 
         return Ok(events);
     }

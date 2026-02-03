@@ -25,11 +25,11 @@
             @foreach (var item in RepeatingEvents)
             {
                 <tr>
-                    <td>@item.Name</td>
-                    <td>@(item.Image ?? "-")</td>
-                    <td>@item.RepeatType</td>
-                    <td>@GetScheduleDescription(item)</td>
-                    <td>
+                    <td data-label="Name">@item.Name</td>
+                    <td data-label="Image">@(item.Image ?? "-")</td>
+                    <td data-label="Type">@item.RepeatType</td>
+                    <td data-label="Schedule">@GetScheduleDescription(item)</td>
+                    <td data-label="Actions">
                         <a href="/repeatingevents/edit/@item.Id" class="btn btn-primary">Edit</a>
                         <a href="/repeatingevents/delete/@item.Id" class="btn btn-danger">Delete</a>
                     </td>

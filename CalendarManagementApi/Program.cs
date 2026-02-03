@@ -6,8 +6,7 @@ using CalendarManagementApi.Components;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
-    .WriteTo.File("Logs/calendar-api-.log", rollingInterval: RollingInterval.Day)
-    .CreateLogger();
+    .CreateBootstrapLogger();
 
 try
 {
@@ -15,36 +14,50 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
-    builder.Host.UseSerilog();
+    builder.Host.UseSerilog((context, configuration) =>
+        configuration.ReadFrom.Configuration(context.Configuration));
 
     // Add services to the container
     builder.Services.AddDbContext<CalendarDbContext>(options =>
         options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
     builder.Services.AddScoped<CalendarService>();
-    builder.Services.AddScoped<IDateEventService, DateEventService>();
+    builder.Services.AddScoped<IMessageOfTheDayService, MessageOfTheDayService>();
     builder.Services.AddScoped<IWaitingEventService, WaitingEventService>();
     builder.Services.AddScoped<IRepeatingEventService, RepeatingEventService>();
 
-    builder.Services.AddControllers();
+    builder.Services.AddControllers()
+        .AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+        });
     builder.Services.AddRazorComponents()
         .AddInteractiveServerComponents();
     builder.Services.AddOpenApi();
+    builder.Services.AddHealthChecks()
+        .AddDbContextCheck<CalendarDbContext>();
 
     var app = builder.Build();
+
+    // Apply pending migrations automatically
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<CalendarDbContext>();
+        dbContext.Database.Migrate();
+    }
 
     // Configure the HTTP request pipeline
     if (app.Environment.IsDevelopment())
     {
         app.MapOpenApi();
+        app.UseHttpsRedirection();
     }
-
-    app.UseHttpsRedirection();
     app.UseStaticFiles();
     app.UseRouting();
     app.UseAntiforgery();
     app.UseAuthorization();
 
+    app.MapHealthChecks("/health");
     app.MapControllers();
     app.MapRazorComponents<App>()
         .AddInteractiveServerRenderMode();

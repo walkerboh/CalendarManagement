@@ -1,0 +1,15 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=192.168.1.24;Port=5432;Database=calendardb;Username=postgres;Password=J1mR4yn0r
+    volumes:
+      - type: bind
+        source: C:\temp-logs
+        target: /app/Logs
+    restart: unless-stopped

@@ -8,6 +8,17 @@
 
 <p>Welcome to the Calendar Management application. Use this system to manage different types of calendar events.</p>
 
+@if (MotdEvents.Any())
+{
+    <div class="card" style="margin-top: 1.5rem; max-width: none; background-color: #fff9e6;">
+        <h2>Message of the Day</h2>
+        @foreach (var motd in MotdEvents)
+        {
+            <p style="font-size: 1.2rem; margin: 0.5rem 0; color: @(motd.TextColor == CalendarManagementApi.Models.TextColor.Red ? "red" : "black");">@motd.Name</p>
+        }
+    </div>
+}
+
 <div class="card" style="margin-top: 1.5rem; max-width: none; background-color: #e8f4fd;">
     <h2>Today's Events - @Today.ToString("dddd, MMMM d, yyyy")</h2>
     @if (TodaysEvents.Any())
@@ -23,20 +34,9 @@
                 @foreach (var evt in TodaysEvents)
                 {
                     <tr>
-                        <td>@evt.Name</td>
-                        <td>
-                            @switch (evt.EventType)
-                            {
-                                case "DateEvent":
-                                    <span class="badge badge-date">Date Event</span>
-                                    break;
-                                case "WaitingEvent":
-                                    <span class="badge badge-waiting">Waiting Event</span>
-                                    break;
-                                case "RepeatingEvent":
-                                    <span class="badge badge-repeating">Repeating Event</span>
-                                    break;
-                            }
+                        <td data-label="Event Name">@evt.Name</td>
+                        <td data-label="Type">
+                            <span class="badge badge-repeating">Repeating Event</span>
                         </td>
                     </tr>
                 }
@@ -66,9 +66,9 @@
                 @foreach (var evt in DueWaitingEvents)
                 {
                     <tr>
-                        <td>@evt.Name</td>
-                        <td>@evt.OccurrenceDate.ToString("yyyy-MM-dd")</td>
-                        <td>
+                        <td data-label="Event Name">@evt.Name</td>
+                        <td data-label="Original Date">@evt.OccurrenceDate.ToString("yyyy-MM-dd")</td>
+                        <td data-label="Actions">
                             <button class="btn btn-warning" @onclick="() => PostponeWeek(evt.Id)">+7 Days</button>
                             <button class="btn btn-warning" @onclick="() => PostponeMonth(evt.Id)">+1 Month</button>
                         </td>
@@ -79,20 +79,20 @@
     </div>
 }
 
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
-    <div class="card">
-        <h2>Date Events</h2>
-        <p>Events that occur on a specific date each year (e.g., birthdays, anniversaries).</p>
-        <a href="/dateevents" class="btn btn-primary">Manage Date Events</a>
+<div class="card-grid">
+    <div class="card" style="max-width: none;">
+        <h2>Messages of the Day</h2>
+        <p>Messages that display on a specific date each year (e.g., birthdays, anniversaries).</p>
+        <a href="/messageoftheday" class="btn btn-primary">Manage Messages of the Day</a>
     </div>
 
-    <div class="card">
+    <div class="card" style="max-width: none;">
         <h2>Waiting Events</h2>
         <p>Events that occur once and then need to be manually rescheduled after completion.</p>
         <a href="/waitingevents" class="btn btn-primary">Manage Waiting Events</a>
     </div>
 
-    <div class="card">
+    <div class="card" style="max-width: none;">
         <h2>Repeating Events</h2>
         <p>Events that repeat on a schedule (weekly, specific weeks, or at intervals).</p>
         <a href="/repeatingevents" class="btn btn-primary">Manage Repeating Events</a>
@@ -110,9 +110,9 @@
     </div>
 
     <div style="margin-top: 1rem;">
-        <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">GET /api/calendar/dates/{date}</h3>
-        <p style="margin: 0.25rem 0;">Returns date events that match the month and day of the specified date.</p>
-        <code style="background: #f4f4f4; padding: 0.5rem; display: block;">Example: /api/calendar/dates/2024-12-25</code>
+        <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">GET /api/calendar/motd/{date}</h3>
+        <p style="margin: 0.25rem 0;">Returns messages of the day that match the month and day of the specified date.</p>
+        <code style="background: #f4f4f4; padding: 0.5rem; display: block;">Example: /api/calendar/motd/2024-12-25</code>
     </div>
 
     <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #ddd;">
@@ -123,7 +123,7 @@
         </div>
         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
             <button class="btn btn-primary" @onclick="TestCalendarEndpoint">Test /api/calendar/{date}</button>
-            <button class="btn btn-primary" @onclick="TestDateEventsEndpoint">Test /api/calendar/dates/{date}</button>
+            <button class="btn btn-primary" @onclick="TestMotdEndpoint">Test /api/calendar/motd/{date}</button>
         </div>
 
         @if (ApiTestResult != null)
@@ -138,6 +138,7 @@
 
 @code {
     private List<CalendarManagementApi.DTOs.CalendarEventDto> TodaysEvents { get; set; } = new();
+    private List<CalendarManagementApi.DTOs.CalendarEventDto> MotdEvents { get; set; } = new();
     private List<WaitingEvent> DueWaitingEvents { get; set; } = new();
     private DateOnly Today { get; set; }
     private DateTime TestDate { get; set; } = DateTime.Today;
@@ -153,8 +154,8 @@
     private async Task LoadData()
     {
         var events = await CalendarService.GetEventsForDate(Today);
-        var dateEvents = await CalendarService.GetDateEventsForDate(Today);
-        TodaysEvents = events.Concat(dateEvents).ToList();
+        MotdEvents = (await CalendarService.GetMotdForDate(Today)).ToList();
+        TodaysEvents = events.Where(e => e.EventType == "RepeatingEvent").ToList();
         DueWaitingEvents = await WaitingEventService.GetDueEventsAsync();
     }
 
@@ -178,11 +179,11 @@
         ApiTestResult = System.Text.Json.JsonSerializer.Serialize(results, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
     }
 
-    private async Task TestDateEventsEndpoint()
+    private async Task TestMotdEndpoint()
     {
         var date = DateOnly.FromDateTime(TestDate);
-        ApiTestUrl = $"GET /api/calendar/dates/{date:yyyy-MM-dd}";
-        var results = await CalendarService.GetDateEventsForDate(date);
+        ApiTestUrl = $"GET /api/calendar/motd/{date:yyyy-MM-dd}";
+        var results = await CalendarService.GetMotdForDate(date);
         ApiTestResult = System.Text.Json.JsonSerializer.Serialize(results, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
     }
 }
