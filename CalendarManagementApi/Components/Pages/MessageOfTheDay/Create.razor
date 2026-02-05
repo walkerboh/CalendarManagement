@@ -43,12 +43,12 @@
         </div>
 
         <div class="form-group">
-            <label for="textColor">Text Color</label>
-            <InputSelect id="textColor" @bind-Value="Motd.TextColor" class="form-control">
-                <option value="@TextColor.Black">Black</option>
-                <option value="@TextColor.Red">Red</option>
+            <label for="layer">Layer</label>
+            <InputSelect id="layer" @bind-Value="Motd.Layer" class="form-control">
+                <option value="@Layer.Black">Black</option>
+                <option value="@Layer.Red">Red</option>
             </InputSelect>
-            <ValidationMessage For="() => Motd.TextColor" class="text-danger" />
+            <ValidationMessage For="() => Motd.Layer" class="text-danger" />
         </div>
 
         <div class="form-group">

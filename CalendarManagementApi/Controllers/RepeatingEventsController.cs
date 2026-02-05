@@ -33,7 +33,8 @@ public class RepeatingEventsController : ControllerBase
                 IntervalDays = e.IntervalDays,
                 StartDate = e.StartDate,
                 Month = e.Month,
-                Day = e.Day
+                Day = e.Day,
+                Layer = e.Layer
             })
             .ToListAsync();
 
@@ -60,7 +61,8 @@ public class RepeatingEventsController : ControllerBase
             IntervalDays = repeatingEvent.IntervalDays,
             StartDate = repeatingEvent.StartDate,
             Month = repeatingEvent.Month,
-            Day = repeatingEvent.Day
+            Day = repeatingEvent.Day,
+            Layer = repeatingEvent.Layer
         });
     }
 
@@ -76,7 +78,8 @@ public class RepeatingEventsController : ControllerBase
             IntervalDays = dto.IntervalDays,
             StartDate = dto.StartDate,
             Month = dto.Month,
-            Day = dto.Day
+            Day = dto.Day,
+            Layer = dto.Layer
         };
 
         _context.RepeatingEvents.Add(repeatingEvent);
@@ -94,7 +97,8 @@ public class RepeatingEventsController : ControllerBase
             IntervalDays = repeatingEvent.IntervalDays,
             StartDate = repeatingEvent.StartDate,
             Month = repeatingEvent.Month,
-            Day = repeatingEvent.Day
+            Day = repeatingEvent.Day,
+            Layer = repeatingEvent.Layer
         };
 
         return CreatedAtAction(nameof(GetById), new { id = repeatingEvent.Id }, result);
@@ -118,6 +122,7 @@ public class RepeatingEventsController : ControllerBase
         repeatingEvent.StartDate = dto.StartDate;
         repeatingEvent.Month = dto.Month;
         repeatingEvent.Day = dto.Day;
+        repeatingEvent.Layer = dto.Layer;
 
         await _context.SaveChangesAsync();
 

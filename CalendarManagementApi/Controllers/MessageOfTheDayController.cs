@@ -28,7 +28,8 @@ public class MessageOfTheDayController : ControllerBase
                 Id = e.Id,
                 Message = e.Message,
                 Month = e.Month,
-                Day = e.Day
+                Day = e.Day,
+                Layer = e.Layer
             })
             .ToListAsync();
 
@@ -50,7 +51,8 @@ public class MessageOfTheDayController : ControllerBase
             Id = motd.Id,
             Message = motd.Message,
             Month = motd.Month,
-            Day = motd.Day
+            Day = motd.Day,
+            Layer = motd.Layer
         });
     }
 
@@ -61,7 +63,8 @@ public class MessageOfTheDayController : ControllerBase
         {
             Message = dto.Message,
             Month = dto.Month,
-            Day = dto.Day
+            Day = dto.Day,
+            Layer = dto.Layer
         };
 
         var existing = await _context.MessagesOfTheDay
@@ -81,7 +84,8 @@ public class MessageOfTheDayController : ControllerBase
             Id = motd.Id,
             Message = motd.Message,
             Month = motd.Month,
-            Day = motd.Day
+            Day = motd.Day,
+            Layer = motd.Layer
         };
 
         return CreatedAtAction(nameof(GetById), new { id = motd.Id }, result);
@@ -107,6 +111,7 @@ public class MessageOfTheDayController : ControllerBase
         motd.Message = dto.Message;
         motd.Month = dto.Month;
         motd.Day = dto.Day;
+        motd.Layer = dto.Layer;
 
         await _context.SaveChangesAsync();
 

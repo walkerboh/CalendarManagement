@@ -16,6 +16,7 @@
             <tr>
                 <th>Name</th>
                 <th>Image</th>
+                <th>Layer</th>
                 <th>Type</th>
                 <th>Schedule</th>
                 <th>Actions</th>
@@ -27,6 +28,7 @@
                 <tr>
                     <td data-label="Name">@item.Name</td>
                     <td data-label="Image">@(item.Image ?? "-")</td>
+                    <td data-label="Layer">@item.Layer</td>
                     <td data-label="Type">@item.RepeatType</td>
                     <td data-label="Schedule">@GetScheduleDescription(item)</td>
                     <td data-label="Actions">

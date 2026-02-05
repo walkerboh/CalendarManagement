@@ -55,7 +55,7 @@ public class MessageOfTheDayControllerTests
         var mockLogger = new Mock<ILogger<MessageOfTheDayController>>();
         var controller = new MessageOfTheDayController(context, mockLogger.Object);
 
-        var motd = new MessageOfTheDay { Message = "Birthday", Month = 7, Day = 4 };
+        var motd = new MessageOfTheDay { Message = "Birthday", Month = 7, Day = 4, Layer = Layer.Red };
         context.MessagesOfTheDay.Add(motd);
         await context.SaveChangesAsync();
 
@@ -67,6 +67,7 @@ public class MessageOfTheDayControllerTests
         Assert.That(dto.Message, Is.EqualTo("Birthday"));
         Assert.That(dto.Month, Is.EqualTo(7));
         Assert.That(dto.Day, Is.EqualTo(4));
+        Assert.That(dto.Layer, Is.EqualTo(Layer.Red));
     }
 
     [Test]
@@ -92,7 +93,8 @@ public class MessageOfTheDayControllerTests
         {
             Message = "New Birthday",
             Month = 5,
-            Day = 15
+            Day = 15,
+            Layer = Layer.Red
         };
 
         var result = await controller.Create(dto);
@@ -103,6 +105,7 @@ public class MessageOfTheDayControllerTests
         var motdDto = (MessageOfTheDayDto)createdResult.Value!;
         Assert.That(motdDto.Message, Is.EqualTo("New Birthday"));
         Assert.That(motdDto.Id, Is.GreaterThan(0));
+        Assert.That(motdDto.Layer, Is.EqualTo(Layer.Red));
     }
 
     [Test]
@@ -187,7 +190,8 @@ public class MessageOfTheDayControllerTests
         {
             Message = "Updated",
             Month = 12,
-            Day = 31
+            Day = 31,
+            Layer = Layer.Red
         };
 
         await controller.Update(motd.Id, updateDto);
@@ -196,6 +200,7 @@ public class MessageOfTheDayControllerTests
         Assert.That(updated!.Message, Is.EqualTo("Updated"));
         Assert.That(updated.Month, Is.EqualTo(12));
         Assert.That(updated.Day, Is.EqualTo(31));
+        Assert.That(updated.Layer, Is.EqualTo(Layer.Red));
     }
 
     [Test]

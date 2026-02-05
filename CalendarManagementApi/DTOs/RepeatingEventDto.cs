@@ -14,6 +14,7 @@ public class RepeatingEventDto
     public DateOnly? StartDate { get; set; }
     public int? Month { get; set; }
     public int? Day { get; set; }
+    public Layer Layer { get; set; }
 }
 
 public class CreateRepeatingEventDto
@@ -40,6 +41,8 @@ public class CreateRepeatingEventDto
 
     [Range(1, 31)]
     public int? Day { get; set; }
+
+    public Layer Layer { get; set; }
 }
 
 public class UpdateRepeatingEventDto
@@ -66,4 +69,6 @@ public class UpdateRepeatingEventDto
 
     [Range(1, 31)]
     public int? Day { get; set; }
+
+    public Layer Layer { get; set; }
 }

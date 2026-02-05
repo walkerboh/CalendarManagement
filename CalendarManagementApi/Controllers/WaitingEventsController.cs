@@ -29,7 +29,8 @@ public class WaitingEventsController : ControllerBase
                 Id = e.Id,
                 Name = e.Name,
                 OccurrenceDate = e.OccurrenceDate,
-                IsPastDue = e.OccurrenceDate <= today
+                IsPastDue = e.OccurrenceDate <= today,
+                Layer = e.Layer
             })
             .ToListAsync();
 
@@ -52,7 +53,8 @@ public class WaitingEventsController : ControllerBase
             Id = waitingEvent.Id,
             Name = waitingEvent.Name,
             OccurrenceDate = waitingEvent.OccurrenceDate,
-            IsPastDue = waitingEvent.OccurrenceDate <= today
+            IsPastDue = waitingEvent.OccurrenceDate <= today,
+            Layer = waitingEvent.Layer
         });
     }
 
@@ -62,7 +64,8 @@ public class WaitingEventsController : ControllerBase
         var waitingEvent = new WaitingEvent
         {
             Name = dto.Name,
-            OccurrenceDate = dto.OccurrenceDate
+            OccurrenceDate = dto.OccurrenceDate,
+            Layer = dto.Layer
         };
 
         _context.WaitingEvents.Add(waitingEvent);
@@ -76,7 +79,8 @@ public class WaitingEventsController : ControllerBase
             Id = waitingEvent.Id,
             Name = waitingEvent.Name,
             OccurrenceDate = waitingEvent.OccurrenceDate,
-            IsPastDue = waitingEvent.OccurrenceDate <= today
+            IsPastDue = waitingEvent.OccurrenceDate <= today,
+            Layer = waitingEvent.Layer
         };
 
         return CreatedAtAction(nameof(GetById), new { id = waitingEvent.Id }, result);
@@ -94,6 +98,7 @@ public class WaitingEventsController : ControllerBase
 
         waitingEvent.Name = dto.Name;
         waitingEvent.OccurrenceDate = dto.OccurrenceDate;
+        waitingEvent.Layer = dto.Layer;
 
         await _context.SaveChangesAsync();
 

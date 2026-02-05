@@ -50,6 +50,7 @@ public class WaitingEventService : IWaitingEventService
         existing.Name = waitingEvent.Name;
         existing.OccurrenceDate = waitingEvent.OccurrenceDate;
         existing.Image = waitingEvent.Image;
+        existing.Layer = waitingEvent.Layer;
 
         await _context.SaveChangesAsync();
         return true;

@@ -16,7 +16,7 @@
             <tr>
                 <th>Message</th>
                 <th>Date</th>
-                <th>Text Color</th>
+                <th>Layer</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -26,7 +26,7 @@
                 <tr>
                     <td data-label="Message">@item.Message</td>
                     <td data-label="Date">@($"{item.Month:D2}/{item.Day:D2}")</td>
-                    <td data-label="Text Color">@item.TextColor</td>
+                    <td data-label="Layer">@item.Layer</td>
                     <td data-label="Actions">
                         <a href="/messageoftheday/edit/@item.Id" class="btn btn-primary">Edit</a>
                         <a href="/messageoftheday/delete/@item.Id" class="btn btn-danger">Delete</a>

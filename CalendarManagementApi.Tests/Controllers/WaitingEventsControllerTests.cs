@@ -198,7 +198,8 @@ public class WaitingEventsControllerTests
         var dto = new CreateWaitingEventDto
         {
             Name = "New Task",
-            OccurrenceDate = new DateOnly(2026, 6, 15)
+            OccurrenceDate = new DateOnly(2026, 6, 15),
+            Layer = Layer.Red
         };
 
         var result = await controller.Create(dto);
@@ -209,6 +210,7 @@ public class WaitingEventsControllerTests
         var eventDto = (WaitingEventDto)createdResult.Value!;
         Assert.That(eventDto.Name, Is.EqualTo("New Task"));
         Assert.That(eventDto.Id, Is.GreaterThan(0));
+        Assert.That(eventDto.Layer, Is.EqualTo(Layer.Red));
     }
 
     [Test]
@@ -279,7 +281,8 @@ public class WaitingEventsControllerTests
         var updateDto = new UpdateWaitingEventDto
         {
             Name = "Updated",
-            OccurrenceDate = new DateOnly(2026, 12, 31)
+            OccurrenceDate = new DateOnly(2026, 12, 31),
+            Layer = Layer.Red
         };
 
         await controller.Update(waitingEvent.Id, updateDto);
@@ -287,6 +290,7 @@ public class WaitingEventsControllerTests
         var updatedEvent = await context.WaitingEvents.FindAsync(waitingEvent.Id);
         Assert.That(updatedEvent!.Name, Is.EqualTo("Updated"));
         Assert.That(updatedEvent.OccurrenceDate, Is.EqualTo(new DateOnly(2026, 12, 31)));
+        Assert.That(updatedEvent.Layer, Is.EqualTo(Layer.Red));
     }
 
     [Test]

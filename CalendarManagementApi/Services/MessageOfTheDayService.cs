@@ -52,7 +52,7 @@ public class MessageOfTheDayService : IMessageOfTheDayService
         existingEntity.Message = messageOfTheDay.Message;
         existingEntity.Month = messageOfTheDay.Month;
         existingEntity.Day = messageOfTheDay.Day;
-        existingEntity.TextColor = messageOfTheDay.TextColor;
+        existingEntity.Layer = messageOfTheDay.Layer;
 
         await _context.SaveChangesAsync();
         return true;

@@ -107,7 +107,8 @@ public class RepeatingEventsControllerTests
         {
             Name = "Monday Meeting",
             RepeatType = RepeatType.DayOfWeek,
-            DayOfWeek = 1
+            DayOfWeek = 1,
+            Layer = Layer.Red
         };
 
         var result = await controller.Create(dto);
@@ -118,6 +119,7 @@ public class RepeatingEventsControllerTests
         var eventDto = (RepeatingEventDto)createdResult.Value!;
         Assert.That(eventDto.Name, Is.EqualTo("Monday Meeting"));
         Assert.That(eventDto.RepeatType, Is.EqualTo(RepeatType.DayOfWeek));
+        Assert.That(eventDto.Layer, Is.EqualTo(Layer.Red));
     }
 
     #endregion
@@ -304,7 +306,8 @@ public class RepeatingEventsControllerTests
             Name = "Updated Meeting",
             RepeatType = RepeatType.Interval,
             StartDate = new DateOnly(2026, 5, 1),
-            IntervalDays = 7
+            IntervalDays = 7,
+            Layer = Layer.Red
         };
 
         await controller.Update(repeatingEvent.Id, updateDto);
@@ -313,6 +316,7 @@ public class RepeatingEventsControllerTests
         Assert.That(updatedEvent!.Name, Is.EqualTo("Updated Meeting"));
         Assert.That(updatedEvent.RepeatType, Is.EqualTo(RepeatType.Interval));
         Assert.That(updatedEvent.IntervalDays, Is.EqualTo(7));
+        Assert.That(updatedEvent.Layer, Is.EqualTo(Layer.Red));
     }
 
     [Test]

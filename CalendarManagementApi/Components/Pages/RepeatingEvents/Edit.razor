@@ -30,6 +30,15 @@ else
             </div>
 
             <div class="form-group">
+                <label for="layer">Layer</label>
+                <InputSelect id="layer" @bind-Value="RepeatingEvent.Layer" class="form-control">
+                    <option value="@Layer.Black">Black</option>
+                    <option value="@Layer.Red">Red</option>
+                </InputSelect>
+                <ValidationMessage For="() => RepeatingEvent.Layer" class="text-danger" />
+            </div>
+
+            <div class="form-group">
                 <label for="repeatType">Repeat Type</label>
                 <InputSelect id="repeatType" @bind-Value="RepeatingEvent.RepeatType" class="form-control">
                     <option value="@RepeatType.DayOfWeek">Day of Week</option>

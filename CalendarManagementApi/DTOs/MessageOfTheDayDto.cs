@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using CalendarManagementApi.Models;
 
 namespace CalendarManagementApi.DTOs;
 
@@ -8,6 +9,7 @@ public class MessageOfTheDayDto
     public string Message { get; set; } = string.Empty;
     public int Month { get; set; }
     public int Day { get; set; }
+    public Layer Layer { get; set; }
 }
 
 public class CreateMessageOfTheDayDto
@@ -21,6 +23,8 @@ public class CreateMessageOfTheDayDto
 
     [Range(1, 31)]
     public int Day { get; set; }
+
+    public Layer Layer { get; set; }
 }
 
 public class UpdateMessageOfTheDayDto
@@ -34,4 +38,6 @@ public class UpdateMessageOfTheDayDto
 
     [Range(1, 31)]
     public int Day { get; set; }
+
+    public Layer Layer { get; set; }
 }

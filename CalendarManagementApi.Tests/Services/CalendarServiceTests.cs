@@ -486,7 +486,8 @@ public class CalendarServiceTests
         var pastDueEvent = new WaitingEvent
         {
             Name = "Past Due",
-            OccurrenceDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-1))
+            OccurrenceDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-1)),
+            Layer = Layer.Red
         };
         var futureEvent = new WaitingEvent
         {
@@ -501,6 +502,7 @@ public class CalendarServiceTests
         Assert.That(result, Has.Count.EqualTo(1));
         Assert.That(result[0].Name, Is.EqualTo("Past Due"));
         Assert.That(result[0].EventType, Is.EqualTo("WaitingEvent"));
+        Assert.That(result[0].Layer, Is.EqualTo(Layer.Red));
     }
 
     [Test]
@@ -514,7 +516,8 @@ public class CalendarServiceTests
         {
             Name = "Monday Meeting",
             RepeatType = RepeatType.DayOfWeek,
-            DayOfWeek = 1 // Monday
+            DayOfWeek = 1, // Monday
+            Layer = Layer.Red
         };
         context.RepeatingEvents.Add(mondayEvent);
         await context.SaveChangesAsync();
@@ -525,6 +528,7 @@ public class CalendarServiceTests
         Assert.That(result, Has.Count.EqualTo(1));
         Assert.That(result[0].Name, Is.EqualTo("Monday Meeting"));
         Assert.That(result[0].EventType, Is.EqualTo("RepeatingEvent"));
+        Assert.That(result[0].Layer, Is.EqualTo(Layer.Red));
     }
 
     [Test]
@@ -572,7 +576,8 @@ public class CalendarServiceTests
         {
             Message = "Birthday",
             Month = 7,
-            Day = 4
+            Day = 4,
+            Layer = Layer.Red
         };
         var otherMessage = new MessageOfTheDay
         {
@@ -588,6 +593,7 @@ public class CalendarServiceTests
         Assert.That(result, Has.Count.EqualTo(1));
         Assert.That(result.Select(e => e.Name), Is.EquivalentTo(new[] { "Birthday" }));
         Assert.That(result.All(e => e.EventType == "MessageOfTheDay"), Is.True);
+        Assert.That(result[0].Layer, Is.EqualTo(Layer.Red));
     }
 
     [Test]

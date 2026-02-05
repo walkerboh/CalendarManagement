@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace CalendarManagementApi.Models;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
-public enum TextColor
+public enum Layer
 {
     Black,
     Red
@@ -25,5 +25,5 @@ public class MessageOfTheDay
     public int Day { get; set; }
 
     [Required]
-    public TextColor TextColor { get; set; } = TextColor.Black;
+    public Layer Layer { get; set; } = Layer.Black;
 }

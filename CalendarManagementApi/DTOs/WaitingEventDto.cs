@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using CalendarManagementApi.Models;
 
 namespace CalendarManagementApi.DTOs;
 
@@ -8,6 +9,7 @@ public class WaitingEventDto
     public string Name { get; set; } = string.Empty;
     public DateOnly OccurrenceDate { get; set; }
     public bool IsPastDue { get; set; }
+    public Layer Layer { get; set; }
 }
 
 public class CreateWaitingEventDto
@@ -17,6 +19,8 @@ public class CreateWaitingEventDto
     public string Name { get; set; } = string.Empty;
 
     public DateOnly OccurrenceDate { get; set; }
+
+    public Layer Layer { get; set; }
 }
 
 public class UpdateWaitingEventDto
@@ -26,4 +30,6 @@ public class UpdateWaitingEventDto
     public string Name { get; set; } = string.Empty;
 
     public DateOnly OccurrenceDate { get; set; }
+
+    public Layer Layer { get; set; }
 }

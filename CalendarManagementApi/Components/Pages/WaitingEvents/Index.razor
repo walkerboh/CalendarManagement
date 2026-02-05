@@ -16,6 +16,7 @@
             <tr>
                 <th>Name</th>
                 <th>Image</th>
+                <th>Layer</th>
                 <th>Occurrence Date</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -28,6 +29,7 @@
                 <tr>
                     <td data-label="Name">@item.Name</td>
                     <td data-label="Image">@(item.Image ?? "-")</td>
+                    <td data-label="Layer">@item.Layer</td>
                     <td data-label="Occurrence Date">@item.OccurrenceDate.ToString("yyyy-MM-dd")</td>
                     <td data-label="Status">
                         @if (isPastDue)

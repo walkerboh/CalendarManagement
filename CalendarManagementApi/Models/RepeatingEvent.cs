@@ -39,4 +39,7 @@ public class RepeatingEvent
 
     [MaxLength(100)]
     public string? Image { get; set; }
+
+    [Required]
+    public Layer Layer { get; set; } = Layer.Black;
 }
