@@ -42,14 +42,14 @@ public class CalendarController : ControllerBase
     }
 
     [HttpGet("birthdays/{date}")]
-    public async Task<ActionResult<IEnumerable<CalendarEventDto>>> GetBirthdaysForDate(DateOnly date)
+    public async Task<ActionResult<IEnumerable<BirthdayResponseDto>>> GetBirthdaysForDate(DateOnly date)
     {
         _logger.LogInformation("Fetching birthdays for date: {Date}", date);
 
-        var events = await _calendarService.GetBirthdaysForDate(date);
+        var birthdays = await _calendarService.GetBirthdaysForDate(date);
 
-        _logger.LogInformation("Found {Count} birthdays for date {Date}", events.Count, date);
+        _logger.LogInformation("Found {Count} birthdays within 14 days of {Date}", birthdays.Count, date);
 
-        return Ok(events);
+        return Ok(birthdays);
     }
 }

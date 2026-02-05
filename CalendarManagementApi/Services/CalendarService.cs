@@ -74,22 +74,41 @@ public class CalendarService
         return events;
     }
 
-    public async Task<List<CalendarEventDto>> GetBirthdaysForDate(DateOnly date)
+    public async Task<List<BirthdayResponseDto>> GetBirthdaysForDate(DateOnly date)
     {
-        var events = new List<CalendarEventDto>();
+        // Generate all (month, day) tuples within the 14-day window
+        var dateRange = Enumerable.Range(0, 15)
+            .Select(i => date.AddDays(i))
+            .Select(d => (d.Month, d.Day))
+            .ToHashSet();
 
-        var birthdays = await _context.Birthdays
-            .Where(e => e.Month == date.Month && e.Day == date.Day)
-            .ToListAsync();
+        // Fetch all birthdays and filter in memory (EF Core can't translate tuple Contains to SQL)
+        var allBirthdays = await _context.Birthdays.ToListAsync();
+        var birthdays = allBirthdays.Where(b => dateRange.Contains((b.Month, b.Day)));
 
-        events.AddRange(birthdays.Select(e => new CalendarEventDto
+        return birthdays.Select(b => new BirthdayResponseDto
         {
-            Name = e.Name,
-            EventType = "Birthday",
-            SourceId = e.Id
-        }));
+            Id = b.Id,
+            Name = b.Name,
+            Month = b.Month,
+            Day = b.Day,
+            DaysAway = CalculateDaysAway(date, b.Month, b.Day)
+        }).OrderBy(b => b.DaysAway).ToList();
+    }
 
-        return events;
+    internal int CalculateDaysAway(DateOnly fromDate, int month, int day)
+    {
+        // Find the next occurrence of this birthday from the given date
+        var targetYear = fromDate.Year;
+        var targetDate = new DateOnly(targetYear, month, day);
+
+        // If the target date is before fromDate, it must be next year
+        if (targetDate < fromDate)
+        {
+            targetDate = new DateOnly(targetYear + 1, month, day);
+        }
+
+        return targetDate.DayNumber - fromDate.DayNumber;
     }
 
     internal bool DoesRepeatOnDate(RepeatingEvent repeatEvent, DateOnly date)

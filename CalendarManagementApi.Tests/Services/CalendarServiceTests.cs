@@ -703,4 +703,193 @@ public class CalendarServiceTests
     }
 
     #endregion
+
+    #region GetBirthdaysForDate Tests
+
+    [Test]
+    public async Task GetBirthdaysForDate_ReturnsBirthdaysWithin14DayWindow()
+    {
+        var context = TestDbContextFactory.Create();
+        var service = new CalendarService(context);
+
+        // Date: Feb 5, 2026 - window is Feb 5-19
+        var birthday1 = new Birthday { Name = "Alice", Month = 2, Day = 5 };   // Day 0
+        var birthday2 = new Birthday { Name = "Bob", Month = 2, Day = 10 };    // Day 5
+        var birthday3 = new Birthday { Name = "Charlie", Month = 2, Day = 19 }; // Day 14
+        var birthday4 = new Birthday { Name = "David", Month = 2, Day = 20 };   // Day 15 - outside window
+        context.Birthdays.AddRange(birthday1, birthday2, birthday3, birthday4);
+        await context.SaveChangesAsync();
+
+        var result = await service.GetBirthdaysForDate(new DateOnly(2026, 2, 5));
+
+        Assert.That(result, Has.Count.EqualTo(3));
+        Assert.That(result.Select(b => b.Name), Is.EquivalentTo(new[] { "Alice", "Bob", "Charlie" }));
+    }
+
+    [Test]
+    public async Task GetBirthdaysForDate_ReturnsEmptyListWhenNoBirthdaysInRange()
+    {
+        var context = TestDbContextFactory.Create();
+        var service = new CalendarService(context);
+
+        context.Birthdays.Add(new Birthday { Name = "Alice", Month = 6, Day = 15 });
+        await context.SaveChangesAsync();
+
+        var result = await service.GetBirthdaysForDate(new DateOnly(2026, 2, 5));
+
+        Assert.That(result, Is.Empty);
+    }
+
+    [Test]
+    public async Task GetBirthdaysForDate_CorrectlyCalculatesDaysAway()
+    {
+        var context = TestDbContextFactory.Create();
+        var service = new CalendarService(context);
+
+        var birthday1 = new Birthday { Name = "Same Day", Month = 2, Day = 5 };
+        var birthday2 = new Birthday { Name = "Tomorrow", Month = 2, Day = 6 };
+        var birthday3 = new Birthday { Name = "In 14 Days", Month = 2, Day = 19 };
+        context.Birthdays.AddRange(birthday1, birthday2, birthday3);
+        await context.SaveChangesAsync();
+
+        var result = await service.GetBirthdaysForDate(new DateOnly(2026, 2, 5));
+
+        Assert.That(result, Has.Count.EqualTo(3));
+        Assert.That(result.First(b => b.Name == "Same Day").DaysAway, Is.EqualTo(0));
+        Assert.That(result.First(b => b.Name == "Tomorrow").DaysAway, Is.EqualTo(1));
+        Assert.That(result.First(b => b.Name == "In 14 Days").DaysAway, Is.EqualTo(14));
+    }
+
+    [Test]
+    public async Task GetBirthdaysForDate_HandlesYearBoundary()
+    {
+        var context = TestDbContextFactory.Create();
+        var service = new CalendarService(context);
+
+        // Date: Dec 28, 2026 - window includes Dec 28-31 and Jan 1-11
+        var birthday1 = new Birthday { Name = "Dec 28", Month = 12, Day = 28 }; // Day 0
+        var birthday2 = new Birthday { Name = "Dec 31", Month = 12, Day = 31 }; // Day 3
+        var birthday3 = new Birthday { Name = "Jan 1", Month = 1, Day = 1 };    // Day 4
+        var birthday4 = new Birthday { Name = "Jan 5", Month = 1, Day = 5 };    // Day 8
+        var birthday5 = new Birthday { Name = "Jan 11", Month = 1, Day = 11 };  // Day 14
+        var birthday6 = new Birthday { Name = "Jan 12", Month = 1, Day = 12 };  // Day 15 - outside window
+        context.Birthdays.AddRange(birthday1, birthday2, birthday3, birthday4, birthday5, birthday6);
+        await context.SaveChangesAsync();
+
+        var result = await service.GetBirthdaysForDate(new DateOnly(2026, 12, 28));
+
+        Assert.That(result, Has.Count.EqualTo(5));
+        Assert.That(result.Select(b => b.Name), Is.EquivalentTo(new[] { "Dec 28", "Dec 31", "Jan 1", "Jan 5", "Jan 11" }));
+    }
+
+    [Test]
+    public async Task GetBirthdaysForDate_CalculatesDaysAwayCorrectlyAcrossYearBoundary()
+    {
+        var context = TestDbContextFactory.Create();
+        var service = new CalendarService(context);
+
+        var birthday = new Birthday { Name = "Jan 5", Month = 1, Day = 5 };
+        context.Birthdays.Add(birthday);
+        await context.SaveChangesAsync();
+
+        var result = await service.GetBirthdaysForDate(new DateOnly(2026, 12, 28));
+
+        Assert.That(result, Has.Count.EqualTo(1));
+        Assert.That(result[0].DaysAway, Is.EqualTo(8)); // Dec 28 to Jan 5 = 8 days
+    }
+
+    [Test]
+    public async Task GetBirthdaysForDate_ReturnsResultsOrderedByDaysAway()
+    {
+        var context = TestDbContextFactory.Create();
+        var service = new CalendarService(context);
+
+        // Add in reverse order
+        var birthday1 = new Birthday { Name = "Last", Month = 2, Day = 15 };
+        var birthday2 = new Birthday { Name = "Middle", Month = 2, Day = 10 };
+        var birthday3 = new Birthday { Name = "First", Month = 2, Day = 5 };
+        context.Birthdays.AddRange(birthday1, birthday2, birthday3);
+        await context.SaveChangesAsync();
+
+        var result = await service.GetBirthdaysForDate(new DateOnly(2026, 2, 5));
+
+        Assert.That(result[0].Name, Is.EqualTo("First"));
+        Assert.That(result[1].Name, Is.EqualTo("Middle"));
+        Assert.That(result[2].Name, Is.EqualTo("Last"));
+    }
+
+    [Test]
+    public async Task GetBirthdaysForDate_ExcludesBirthdaysOutsideWindow()
+    {
+        var context = TestDbContextFactory.Create();
+        var service = new CalendarService(context);
+
+        var insideWindow = new Birthday { Name = "Inside", Month = 2, Day = 10 };
+        var outsideWindow = new Birthday { Name = "Outside", Month = 3, Day = 1 };
+        context.Birthdays.AddRange(insideWindow, outsideWindow);
+        await context.SaveChangesAsync();
+
+        var result = await service.GetBirthdaysForDate(new DateOnly(2026, 2, 5));
+
+        Assert.That(result, Has.Count.EqualTo(1));
+        Assert.That(result[0].Name, Is.EqualTo("Inside"));
+    }
+
+    [Test]
+    public async Task GetBirthdaysForDate_ReturnsCorrectDtoFields()
+    {
+        var context = TestDbContextFactory.Create();
+        var service = new CalendarService(context);
+
+        var birthday = new Birthday { Name = "Alice", Month = 2, Day = 10 };
+        context.Birthdays.Add(birthday);
+        await context.SaveChangesAsync();
+
+        var result = await service.GetBirthdaysForDate(new DateOnly(2026, 2, 5));
+
+        Assert.That(result, Has.Count.EqualTo(1));
+        var dto = result[0];
+        Assert.That(dto.Id, Is.EqualTo(birthday.Id));
+        Assert.That(dto.Name, Is.EqualTo("Alice"));
+        Assert.That(dto.Month, Is.EqualTo(2));
+        Assert.That(dto.Day, Is.EqualTo(10));
+        Assert.That(dto.DaysAway, Is.EqualTo(5));
+    }
+
+    #endregion
+
+    #region CalculateDaysAway Tests
+
+    [Test]
+    public void CalculateDaysAway_SameDay_ReturnsZero()
+    {
+        var result = _service.CalculateDaysAway(new DateOnly(2026, 2, 5), 2, 5);
+        Assert.That(result, Is.EqualTo(0));
+    }
+
+    [Test]
+    public void CalculateDaysAway_FutureDate_ReturnsPositiveDays()
+    {
+        var result = _service.CalculateDaysAway(new DateOnly(2026, 2, 5), 2, 10);
+        Assert.That(result, Is.EqualTo(5));
+    }
+
+    [Test]
+    public void CalculateDaysAway_CrossYearBoundary_ReturnsCorrectDays()
+    {
+        // From Dec 28 to Jan 5 (next year) = 8 days
+        var result = _service.CalculateDaysAway(new DateOnly(2026, 12, 28), 1, 5);
+        Assert.That(result, Is.EqualTo(8));
+    }
+
+    [Test]
+    public void CalculateDaysAway_PastDateInYear_ReturnsNextYearOccurrence()
+    {
+        // Birthday was Jan 1, current date is Feb 5 - next occurrence is Jan 1 next year
+        var result = _service.CalculateDaysAway(new DateOnly(2026, 2, 5), 1, 1);
+        // Feb 5 2026 to Jan 1 2027 = 330 days
+        Assert.That(result, Is.EqualTo(330));
+    }
+
+    #endregion
 }
