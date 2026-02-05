@@ -1,6 +1,7 @@
 @page "/"
 @inject CalendarService CalendarService
 @inject IWaitingEventService WaitingEventService
+@inject IBirthdayService BirthdayService
 
 <PageTitle>Home - Calendar Management</PageTitle>
 
@@ -15,6 +16,17 @@
         @foreach (var motd in MotdEvents)
         {
             <p style="font-size: 1.2rem; margin: 0.5rem 0; color: @(motd.Layer == CalendarManagementApi.Models.Layer.Red ? "red" : "black");">@motd.Name</p>
+        }
+    </div>
+}
+
+@if (TodaysBirthdays.Any())
+{
+    <div class="card" style="margin-top: 1.5rem; max-width: none; background-color: #f0e6ff;">
+        <h2>Birthdays Today</h2>
+        @foreach (var birthday in TodaysBirthdays)
+        {
+            <p style="font-size: 1.2rem; margin: 0.5rem 0;">@birthday.Name</p>
         }
     </div>
 }
@@ -99,6 +111,12 @@
         <p>Events that repeat on a schedule (weekly, specific weeks, or at intervals).</p>
         <a href="/repeatingevents" class="btn btn-primary">Manage Repeating Events</a>
     </div>
+
+    <div class="card" style="max-width: none;">
+        <h2>Birthdays</h2>
+        <p>Track birthdays by name and date.</p>
+        <a href="/birthdays" class="btn btn-primary">Manage Birthdays</a>
+    </div>
 </div>
 
 <div class="card" style="margin-top: 2rem; max-width: none;">
@@ -117,6 +135,12 @@
         <code style="background: #f4f4f4; padding: 0.5rem; display: block;">Example: /api/calendar/motd/2024-12-25</code>
     </div>
 
+    <div style="margin-top: 1rem;">
+        <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">GET /api/calendar/birthdays/{date}</h3>
+        <p style="margin: 0.25rem 0;">Returns birthdays that match the month and day of the specified date.</p>
+        <code style="background: #f4f4f4; padding: 0.5rem; display: block;">Example: /api/calendar/birthdays/2024-12-25</code>
+    </div>
+
     <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #ddd;">
         <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Test Endpoints</h3>
         <div class="form-group" style="margin-bottom: 1rem;">
@@ -126,6 +150,7 @@
         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
             <button class="btn btn-primary" @onclick="TestCalendarEndpoint">Test /api/calendar/{date}</button>
             <button class="btn btn-primary" @onclick="TestMotdEndpoint">Test /api/calendar/motd/{date}</button>
+            <button class="btn btn-primary" @onclick="TestBirthdaysEndpoint">Test /api/calendar/birthdays/{date}</button>
         </div>
 
         @if (ApiTestResult != null)
@@ -141,6 +166,7 @@
 @code {
     private List<CalendarManagementApi.DTOs.CalendarEventDto> TodaysEvents { get; set; } = new();
     private List<CalendarManagementApi.DTOs.CalendarEventDto> MotdEvents { get; set; } = new();
+    private List<CalendarManagementApi.Models.Birthday> TodaysBirthdays { get; set; } = new();
     private List<WaitingEvent> DueWaitingEvents { get; set; } = new();
     private Dictionary<int, DateOnly> PostponeDates { get; set; } = new();
     private DateOnly Today { get; set; }
@@ -160,6 +186,8 @@
         MotdEvents = (await CalendarService.GetMotdForDate(Today)).ToList();
         TodaysEvents = events.Where(e => e.EventType == "RepeatingEvent").ToList();
         DueWaitingEvents = await WaitingEventService.GetDueEventsAsync();
+        var allBirthdays = await BirthdayService.GetAllAsync();
+        TodaysBirthdays = allBirthdays.Where(b => b.Month == Today.Month && b.Day == Today.Day).ToList();
     }
 
     private async Task PostponeWeek(int id)
@@ -208,6 +236,14 @@
         var date = DateOnly.FromDateTime(TestDate);
         ApiTestUrl = $"GET /api/calendar/motd/{date:yyyy-MM-dd}";
         var results = await CalendarService.GetMotdForDate(date);
+        ApiTestResult = System.Text.Json.JsonSerializer.Serialize(results, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+    }
+
+    private async Task TestBirthdaysEndpoint()
+    {
+        var date = DateOnly.FromDateTime(TestDate);
+        ApiTestUrl = $"GET /api/calendar/birthdays/{date:yyyy-MM-dd}";
+        var results = await CalendarService.GetBirthdaysForDate(date);
         ApiTestResult = System.Text.Json.JsonSerializer.Serialize(results, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
     }
 }

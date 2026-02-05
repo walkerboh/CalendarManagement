@@ -1,8 +1,9 @@
-using Microsoft.EntityFrameworkCore;
-using Serilog;
+using CalendarManagementApi.Components;
 using CalendarManagementApi.Data;
 using CalendarManagementApi.Services;
-using CalendarManagementApi.Components;
+using Microsoft.EntityFrameworkCore;
+using Serilog;
+using System.Text.Json.Serialization;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -25,11 +26,13 @@ try
     builder.Services.AddScoped<IMessageOfTheDayService, MessageOfTheDayService>();
     builder.Services.AddScoped<IWaitingEventService, WaitingEventService>();
     builder.Services.AddScoped<IRepeatingEventService, RepeatingEventService>();
+    builder.Services.AddScoped<IBirthdayService, BirthdayService>();
 
     builder.Services.AddControllers()
         .AddJsonOptions(options =>
         {
-            options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+            options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
         });
     builder.Services.AddRazorComponents()
         .AddInteractiveServerComponents();

@@ -40,4 +40,16 @@ public class CalendarController : ControllerBase
 
         return Ok(events);
     }
+
+    [HttpGet("birthdays/{date}")]
+    public async Task<ActionResult<IEnumerable<CalendarEventDto>>> GetBirthdaysForDate(DateOnly date)
+    {
+        _logger.LogInformation("Fetching birthdays for date: {Date}", date);
+
+        var events = await _calendarService.GetBirthdaysForDate(date);
+
+        _logger.LogInformation("Found {Count} birthdays for date {Date}", events.Count, date);
+
+        return Ok(events);
+    }
 }

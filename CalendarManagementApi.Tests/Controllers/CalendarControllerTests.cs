@@ -99,4 +99,48 @@ public class CalendarControllerTests
 
         Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
     }
+
+    [Test]
+    public async Task GetBirthdaysForDate_Returns200WithBirthdays()
+    {
+        var context = TestDbContextFactory.Create();
+        var service = new CalendarService(context);
+        var mockLogger = new Mock<ILogger<CalendarController>>();
+        var controller = new CalendarController(service, mockLogger.Object);
+
+        context.Birthdays.Add(new Birthday
+        {
+            Name = "Alice",
+            Month = 7,
+            Day = 4
+        });
+        await context.SaveChangesAsync();
+
+        var result = await controller.GetBirthdaysForDate(new DateOnly(2026, 7, 4));
+
+        Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+        var okResult = (OkObjectResult)result.Result!;
+        Assert.That(okResult.StatusCode, Is.EqualTo(200));
+    }
+
+    [Test]
+    public async Task GetBirthdaysForDate_ReturnsEmptyListWhenNoMatches()
+    {
+        var context = TestDbContextFactory.Create();
+        var service = new CalendarService(context);
+        var mockLogger = new Mock<ILogger<CalendarController>>();
+        var controller = new CalendarController(service, mockLogger.Object);
+
+        context.Birthdays.Add(new Birthday
+        {
+            Name = "Alice",
+            Month = 7,
+            Day = 4
+        });
+        await context.SaveChangesAsync();
+
+        var result = await controller.GetBirthdaysForDate(new DateOnly(2026, 8, 15));
+
+        Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+    }
 }

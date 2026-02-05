@@ -12,6 +12,7 @@ public class CalendarDbContext : DbContext
     public DbSet<MessageOfTheDay> MessagesOfTheDay => Set<MessageOfTheDay>();
     public DbSet<WaitingEvent> WaitingEvents => Set<WaitingEvent>();
     public DbSet<RepeatingEvent> RepeatingEvents => Set<RepeatingEvent>();
+    public DbSet<Birthday> Birthdays => Set<Birthday>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

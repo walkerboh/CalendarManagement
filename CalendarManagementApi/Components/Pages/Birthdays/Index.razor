@@ -1,0 +1,49 @@
+@page "/birthdays"
+@inject IBirthdayService BirthdayService
+
+<PageTitle>Birthdays - Calendar Management</PageTitle>
+
+<h1>Birthdays</h1>
+
+<p>
+    <a href="/birthdays/create" class="btn btn-success">Create New</a>
+</p>
+
+@if (BirthdayList.Any())
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in BirthdayList)
+            {
+                <tr>
+                    <td data-label="Name">@item.Name</td>
+                    <td data-label="Date">@($"{item.Month:D2}/{item.Day:D2}")</td>
+                    <td data-label="Actions">
+                        <a href="/birthdays/edit/@item.Id" class="btn btn-primary">Edit</a>
+                        <a href="/birthdays/delete/@item.Id" class="btn btn-danger">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No birthdays found. <a href="/birthdays/create">Create one</a>.</p>
+}
+
+@code {
+    private List<CalendarManagementApi.Models.Birthday> BirthdayList { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        BirthdayList = await BirthdayService.GetAllAsync();
+    }
+}

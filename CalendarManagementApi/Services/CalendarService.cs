@@ -74,6 +74,24 @@ public class CalendarService
         return events;
     }
 
+    public async Task<List<CalendarEventDto>> GetBirthdaysForDate(DateOnly date)
+    {
+        var events = new List<CalendarEventDto>();
+
+        var birthdays = await _context.Birthdays
+            .Where(e => e.Month == date.Month && e.Day == date.Day)
+            .ToListAsync();
+
+        events.AddRange(birthdays.Select(e => new CalendarEventDto
+        {
+            Name = e.Name,
+            EventType = "Birthday",
+            SourceId = e.Id
+        }));
+
+        return events;
+    }
+
     internal bool DoesRepeatOnDate(RepeatingEvent repeatEvent, DateOnly date)
     {
         return repeatEvent.RepeatType switch
