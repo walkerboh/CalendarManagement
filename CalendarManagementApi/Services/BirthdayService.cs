@@ -1,16 +1,19 @@
 using CalendarManagementApi.Data;
 using CalendarManagementApi.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace CalendarManagementApi.Services;
 
 public class BirthdayService : IBirthdayService
 {
     private readonly CalendarDbContext _context;
+    private readonly ILogger<BirthdayService> _logger;
 
-    public BirthdayService(CalendarDbContext context)
+    public BirthdayService(CalendarDbContext context, ILogger<BirthdayService> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public async Task<List<Birthday>> GetAllAsync()
@@ -30,6 +33,7 @@ public class BirthdayService : IBirthdayService
     {
         _context.Birthdays.Add(birthday);
         await _context.SaveChangesAsync();
+        _logger.LogInformation("Created birthday {Id}: {Name} on {Month}/{Day}", birthday.Id, birthday.Name, birthday.Month, birthday.Day);
         return birthday;
     }
 
@@ -44,6 +48,7 @@ public class BirthdayService : IBirthdayService
         existingEntity.Day = birthday.Day;
 
         await _context.SaveChangesAsync();
+        _logger.LogInformation("Updated birthday {Id}: {Name} on {Month}/{Day}", birthday.Id, birthday.Name, birthday.Month, birthday.Day);
         return true;
     }
 
@@ -55,6 +60,7 @@ public class BirthdayService : IBirthdayService
 
         _context.Birthdays.Remove(birthday);
         await _context.SaveChangesAsync();
+        _logger.LogInformation("Deleted birthday {Id}: {Name}", id, birthday.Name);
         return true;
     }
 }

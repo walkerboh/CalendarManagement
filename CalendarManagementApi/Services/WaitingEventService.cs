@@ -1,16 +1,21 @@
 using CalendarManagementApi.Data;
 using CalendarManagementApi.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace CalendarManagementApi.Services;
 
 public class WaitingEventService : IWaitingEventService
 {
     private readonly CalendarDbContext _context;
+    private readonly IDateProvider _dateProvider;
+    private readonly ILogger<WaitingEventService> _logger;
 
-    public WaitingEventService(CalendarDbContext context)
+    public WaitingEventService(CalendarDbContext context, IDateProvider dateProvider, ILogger<WaitingEventService> logger)
     {
         _context = context;
+        _dateProvider = dateProvider;
+        _logger = logger;
     }
 
     public async Task<List<WaitingEvent>> GetAllAsync()
@@ -22,7 +27,7 @@ public class WaitingEventService : IWaitingEventService
 
     public async Task<List<WaitingEvent>> GetDueEventsAsync()
     {
-        var today = DateOnly.FromDateTime(DateTime.Today);
+        var today = _dateProvider.Today;
         return await _context.WaitingEvents
             .Where(e => e.OccurrenceDate <= today)
             .OrderBy(e => e.OccurrenceDate)
@@ -38,6 +43,7 @@ public class WaitingEventService : IWaitingEventService
     {
         _context.WaitingEvents.Add(waitingEvent);
         await _context.SaveChangesAsync();
+        _logger.LogInformation("Created waiting event {Id}: {Name} on {Date}", waitingEvent.Id, waitingEvent.Name, waitingEvent.OccurrenceDate);
         return waitingEvent;
     }
 
@@ -53,6 +59,7 @@ public class WaitingEventService : IWaitingEventService
         existing.Layer = waitingEvent.Layer;
 
         await _context.SaveChangesAsync();
+        _logger.LogInformation("Updated waiting event {Id}: {Name} on {Date}", waitingEvent.Id, waitingEvent.Name, waitingEvent.OccurrenceDate);
         return true;
     }
 
@@ -64,29 +71,20 @@ public class WaitingEventService : IWaitingEventService
 
         _context.WaitingEvents.Remove(waitingEvent);
         await _context.SaveChangesAsync();
+        _logger.LogInformation("Deleted waiting event {Id}: {Name}", id, waitingEvent.Name);
         return true;
     }
 
     public async Task<bool> PostponeWeekAsync(int id)
     {
-        var waitingEvent = await _context.WaitingEvents.FindAsync(id);
-        if (waitingEvent == null)
-            return false;
-
-        waitingEvent.OccurrenceDate = DateOnly.FromDateTime(DateTime.Today.AddDays(7));
-        await _context.SaveChangesAsync();
-        return true;
+        var newDate = _dateProvider.Today.AddDays(7);
+        return await PostponeToDateAsync(id, newDate);
     }
 
     public async Task<bool> PostponeMonthAsync(int id)
     {
-        var waitingEvent = await _context.WaitingEvents.FindAsync(id);
-        if (waitingEvent == null)
-            return false;
-
-        waitingEvent.OccurrenceDate = DateOnly.FromDateTime(DateTime.Today.AddMonths(1));
-        await _context.SaveChangesAsync();
-        return true;
+        var newDate = _dateProvider.Today.AddMonths(1);
+        return await PostponeToDateAsync(id, newDate);
     }
 
     public async Task<bool> PostponeToDateAsync(int id, DateOnly date)
@@ -97,6 +95,7 @@ public class WaitingEventService : IWaitingEventService
 
         waitingEvent.OccurrenceDate = date;
         await _context.SaveChangesAsync();
+        _logger.LogInformation("Postponed waiting event {Id} to {Date}", id, date);
         return true;
     }
 }

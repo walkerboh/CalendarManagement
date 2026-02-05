@@ -2,24 +2,30 @@ using CalendarManagementApi.Data;
 using CalendarManagementApi.DTOs;
 using CalendarManagementApi.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace CalendarManagementApi.Services;
 
-public class CalendarService
+public class CalendarService : ICalendarService
 {
     private readonly CalendarDbContext _context;
+    private readonly IDateProvider _dateProvider;
+    private readonly ILogger<CalendarService> _logger;
 
-    public CalendarService(CalendarDbContext context)
+    public CalendarService(CalendarDbContext context, IDateProvider dateProvider, ILogger<CalendarService> logger)
     {
         _context = context;
+        _dateProvider = dateProvider;
+        _logger = logger;
     }
 
     public async Task<List<CalendarEventDto>> GetEventsForDate(DateOnly date)
     {
+        _logger.LogDebug("Getting events for date {Date}", date);
         var events = new List<CalendarEventDto>();
 
         // Get waiting events that are due (occurrence date <= today)
-        var today = DateOnly.FromDateTime(DateTime.Today);
+        var today = _dateProvider.Today;
         var waitingEvents = await _context.WaitingEvents
             .Where(e => e.OccurrenceDate <= today)
             .ToListAsync();
@@ -51,11 +57,13 @@ public class CalendarService
             }
         }
 
+        _logger.LogDebug("Found {Count} events for date {Date}", events.Count, date);
         return events;
     }
 
     public async Task<List<CalendarEventDto>> GetMotdForDate(DateOnly date)
     {
+        _logger.LogDebug("Getting messages of the day for date {Date}", date);
         var events = new List<CalendarEventDto>();
 
         // Get messages of the day that match the month and day
@@ -71,11 +79,13 @@ public class CalendarService
             Layer = e.Layer
         }));
 
+        _logger.LogDebug("Found {Count} messages of the day for date {Date}", events.Count, date);
         return events;
     }
 
     public async Task<List<BirthdayResponseDto>> GetBirthdaysForDate(DateOnly date)
     {
+        _logger.LogDebug("Getting birthdays within 14 days of {Date}", date);
         // Generate all (month, day) tuples within the 14-day window
         var dateRange = Enumerable.Range(0, 15)
             .Select(i => date.AddDays(i))
@@ -86,7 +96,7 @@ public class CalendarService
         var allBirthdays = await _context.Birthdays.ToListAsync();
         var birthdays = allBirthdays.Where(b => dateRange.Contains((b.Month, b.Day)));
 
-        return birthdays.Select(b => new BirthdayResponseDto
+        var result = birthdays.Select(b => new BirthdayResponseDto
         {
             Id = b.Id,
             Name = b.Name,
@@ -94,6 +104,9 @@ public class CalendarService
             Day = b.Day,
             DaysAway = CalculateDaysAway(date, b.Month, b.Day)
         }).OrderBy(b => b.DaysAway).ToList();
+
+        _logger.LogDebug("Found {Count} birthdays within 14 days of {Date}", result.Count, date);
+        return result;
     }
 
     internal int CalculateDaysAway(DateOnly fromDate, int month, int day)
@@ -152,12 +165,17 @@ public class CalendarService
         var weekOfMonth = GetWeekOfMonth(date);
 
         // Parse weeks from the comma-separated string
-        var weeks = repeatEvent.WeeksOfMonth.Split(',')
+        var weeks = ParseWeeksOfMonth(repeatEvent.WeeksOfMonth);
+
+        return weeks.Contains(weekOfMonth);
+    }
+
+    internal static List<int> ParseWeeksOfMonth(string weeksOfMonth)
+    {
+        return weeksOfMonth.Split(',')
             .Select(w => int.TryParse(w.Trim(), out var week) ? week : 0)
             .Where(w => w > 0)
             .ToList();
-
-        return weeks.Contains(weekOfMonth);
     }
 
     internal int GetWeekOfMonth(DateOnly date)

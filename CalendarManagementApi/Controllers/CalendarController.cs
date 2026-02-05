@@ -8,10 +8,10 @@ namespace CalendarManagementApi.Controllers;
 [Route("api/[controller]")]
 public class CalendarController : ControllerBase
 {
-    private readonly CalendarService _calendarService;
+    private readonly ICalendarService _calendarService;
     private readonly ILogger<CalendarController> _logger;
 
-    public CalendarController(CalendarService calendarService, ILogger<CalendarController> logger)
+    public CalendarController(ICalendarService calendarService, ILogger<CalendarController> logger)
     {
         _calendarService = calendarService;
         _logger = logger;

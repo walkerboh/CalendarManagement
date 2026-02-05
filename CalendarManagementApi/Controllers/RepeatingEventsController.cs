@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using CalendarManagementApi.Data;
 using CalendarManagementApi.DTOs;
 using CalendarManagementApi.Models;
+using CalendarManagementApi.Services;
 
 namespace CalendarManagementApi.Controllers;
 
@@ -10,41 +9,41 @@ namespace CalendarManagementApi.Controllers;
 [Route("api/[controller]")]
 public class RepeatingEventsController : ControllerBase
 {
-    private readonly CalendarDbContext _context;
+    private readonly IRepeatingEventService _service;
     private readonly ILogger<RepeatingEventsController> _logger;
 
-    public RepeatingEventsController(CalendarDbContext context, ILogger<RepeatingEventsController> logger)
+    public RepeatingEventsController(IRepeatingEventService service, ILogger<RepeatingEventsController> logger)
     {
-        _context = context;
+        _service = service;
         _logger = logger;
     }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<RepeatingEventDto>>> GetAll()
     {
-        var events = await _context.RepeatingEvents
-            .Select(e => new RepeatingEventDto
-            {
-                Id = e.Id,
-                Name = e.Name,
-                RepeatType = e.RepeatType,
-                DayOfWeek = e.DayOfWeek,
-                WeeksOfMonth = e.WeeksOfMonth,
-                IntervalDays = e.IntervalDays,
-                StartDate = e.StartDate,
-                Month = e.Month,
-                Day = e.Day,
-                Layer = e.Layer
-            })
-            .ToListAsync();
+        var events = await _service.GetAllAsync();
 
-        return Ok(events);
+        var result = events.Select(e => new RepeatingEventDto
+        {
+            Id = e.Id,
+            Name = e.Name,
+            RepeatType = e.RepeatType,
+            DayOfWeek = e.DayOfWeek,
+            WeeksOfMonth = e.WeeksOfMonth,
+            IntervalDays = e.IntervalDays,
+            StartDate = e.StartDate,
+            Month = e.Month,
+            Day = e.Day,
+            Layer = e.Layer
+        });
+
+        return Ok(result);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<RepeatingEventDto>> GetById(int id)
     {
-        var repeatingEvent = await _context.RepeatingEvents.FindAsync(id);
+        var repeatingEvent = await _service.GetByIdAsync(id);
 
         if (repeatingEvent == null)
         {
@@ -82,8 +81,7 @@ public class RepeatingEventsController : ControllerBase
             Layer = dto.Layer
         };
 
-        _context.RepeatingEvents.Add(repeatingEvent);
-        await _context.SaveChangesAsync();
+        await _service.CreateAsync(repeatingEvent);
 
         _logger.LogInformation("Created repeating event: {Name} with type {Type}", repeatingEvent.Name, repeatingEvent.RepeatType);
 
@@ -107,24 +105,26 @@ public class RepeatingEventsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, UpdateRepeatingEventDto dto)
     {
-        var repeatingEvent = await _context.RepeatingEvents.FindAsync(id);
+        var repeatingEvent = new RepeatingEvent
+        {
+            Id = id,
+            Name = dto.Name,
+            RepeatType = dto.RepeatType,
+            DayOfWeek = dto.DayOfWeek,
+            WeeksOfMonth = dto.WeeksOfMonth,
+            IntervalDays = dto.IntervalDays,
+            StartDate = dto.StartDate,
+            Month = dto.Month,
+            Day = dto.Day,
+            Layer = dto.Layer
+        };
 
-        if (repeatingEvent == null)
+        var updated = await _service.UpdateAsync(repeatingEvent);
+
+        if (!updated)
         {
             return NotFound();
         }
-
-        repeatingEvent.Name = dto.Name;
-        repeatingEvent.RepeatType = dto.RepeatType;
-        repeatingEvent.DayOfWeek = dto.DayOfWeek;
-        repeatingEvent.WeeksOfMonth = dto.WeeksOfMonth;
-        repeatingEvent.IntervalDays = dto.IntervalDays;
-        repeatingEvent.StartDate = dto.StartDate;
-        repeatingEvent.Month = dto.Month;
-        repeatingEvent.Day = dto.Day;
-        repeatingEvent.Layer = dto.Layer;
-
-        await _context.SaveChangesAsync();
 
         _logger.LogInformation("Updated repeating event {Id}: {Name} with type {Type}", id, repeatingEvent.Name, repeatingEvent.RepeatType);
 
@@ -134,17 +134,14 @@ public class RepeatingEventsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var repeatingEvent = await _context.RepeatingEvents.FindAsync(id);
+        var deleted = await _service.DeleteAsync(id);
 
-        if (repeatingEvent == null)
+        if (!deleted)
         {
             return NotFound();
         }
 
-        _context.RepeatingEvents.Remove(repeatingEvent);
-        await _context.SaveChangesAsync();
-
-        _logger.LogInformation("Deleted repeating event {Id}: {Name}", id, repeatingEvent.Name);
+        _logger.LogInformation("Deleted repeating event {Id}", id);
 
         return NoContent();
     }

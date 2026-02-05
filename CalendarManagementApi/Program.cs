@@ -22,7 +22,8 @@ try
     builder.Services.AddDbContext<CalendarDbContext>(options =>
         options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-    builder.Services.AddScoped<CalendarService>();
+    builder.Services.AddSingleton<IDateProvider, DateProvider>();
+    builder.Services.AddScoped<ICalendarService, CalendarService>();
     builder.Services.AddScoped<IMessageOfTheDayService, MessageOfTheDayService>();
     builder.Services.AddScoped<IWaitingEventService, WaitingEventService>();
     builder.Services.AddScoped<IRepeatingEventService, RepeatingEventService>();

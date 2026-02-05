@@ -1,6 +1,7 @@
 using CalendarManagementApi.Controllers;
 using CalendarManagementApi.DTOs;
 using CalendarManagementApi.Models;
+using CalendarManagementApi.Services;
 using CalendarManagementApi.Tests.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -10,20 +11,25 @@ using NUnit.Framework;
 namespace CalendarManagementApi.Tests.Controllers;
 
 [TestFixture]
-public class MessageOfTheDayControllerTests
+public class MessageOfTheDayControllerTests : ControllerTestBase<MessageOfTheDayController>
 {
+    private MessageOfTheDayController CreateController()
+    {
+        var mockServiceLogger = new Mock<ILogger<MessageOfTheDayService>>();
+        var service = new MessageOfTheDayService(Context, mockServiceLogger.Object);
+        return new MessageOfTheDayController(service, MockLogger.Object);
+    }
+
     [Test]
     public async Task GetAll_ReturnsAllMessages()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<MessageOfTheDayController>>();
-        var controller = new MessageOfTheDayController(context, mockLogger.Object);
+        var controller = CreateController();
 
-        context.MessagesOfTheDay.AddRange(
+        Context.MessagesOfTheDay.AddRange(
             new MessageOfTheDay { Message = "Birthday", Month = 7, Day = 4 },
             new MessageOfTheDay { Message = "Anniversary", Month = 12, Day = 25 }
         );
-        await context.SaveChangesAsync();
+        await Context.SaveChangesAsync();
 
         var result = await controller.GetAll();
 
@@ -36,9 +42,7 @@ public class MessageOfTheDayControllerTests
     [Test]
     public async Task GetAll_ReturnsEmptyListWhenNoMessages()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<MessageOfTheDayController>>();
-        var controller = new MessageOfTheDayController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var result = await controller.GetAll();
 
@@ -51,13 +55,11 @@ public class MessageOfTheDayControllerTests
     [Test]
     public async Task GetById_ReturnsMessageWhenExists()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<MessageOfTheDayController>>();
-        var controller = new MessageOfTheDayController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var motd = new MessageOfTheDay { Message = "Birthday", Month = 7, Day = 4, Layer = Layer.Red };
-        context.MessagesOfTheDay.Add(motd);
-        await context.SaveChangesAsync();
+        Context.MessagesOfTheDay.Add(motd);
+        await Context.SaveChangesAsync();
 
         var result = await controller.GetById(motd.Id);
 
@@ -73,9 +75,7 @@ public class MessageOfTheDayControllerTests
     [Test]
     public async Task GetById_Returns404WhenNotFound()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<MessageOfTheDayController>>();
-        var controller = new MessageOfTheDayController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var result = await controller.GetById(999);
 
@@ -85,9 +85,7 @@ public class MessageOfTheDayControllerTests
     [Test]
     public async Task Create_Returns201WithCreatedMessage()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<MessageOfTheDayController>>();
-        var controller = new MessageOfTheDayController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var dto = new CreateMessageOfTheDayDto
         {
@@ -111,9 +109,7 @@ public class MessageOfTheDayControllerTests
     [Test]
     public async Task Create_PersistsMessageToDatabase()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<MessageOfTheDayController>>();
-        var controller = new MessageOfTheDayController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var dto = new CreateMessageOfTheDayDto
         {
@@ -124,7 +120,7 @@ public class MessageOfTheDayControllerTests
 
         await controller.Create(dto);
 
-        var saved = context.MessagesOfTheDay.FirstOrDefault(e => e.Message == "Persisted Message");
+        var saved = Context.MessagesOfTheDay.FirstOrDefault(e => e.Message == "Persisted Message");
         Assert.That(saved, Is.Not.Null);
         Assert.That(saved!.Month, Is.EqualTo(3));
         Assert.That(saved.Day, Is.EqualTo(20));
@@ -133,12 +129,10 @@ public class MessageOfTheDayControllerTests
     [Test]
     public async Task Create_Returns409WhenDuplicateMonthDay()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<MessageOfTheDayController>>();
-        var controller = new MessageOfTheDayController(context, mockLogger.Object);
+        var controller = CreateController();
 
-        context.MessagesOfTheDay.Add(new MessageOfTheDay { Message = "Existing", Month = 5, Day = 15 });
-        await context.SaveChangesAsync();
+        Context.MessagesOfTheDay.Add(new MessageOfTheDay { Message = "Existing", Month = 5, Day = 15 });
+        await Context.SaveChangesAsync();
 
         var dto = new CreateMessageOfTheDayDto
         {
@@ -155,13 +149,11 @@ public class MessageOfTheDayControllerTests
     [Test]
     public async Task Update_Returns204OnSuccess()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<MessageOfTheDayController>>();
-        var controller = new MessageOfTheDayController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var motd = new MessageOfTheDay { Message = "Original", Month = 1, Day = 1 };
-        context.MessagesOfTheDay.Add(motd);
-        await context.SaveChangesAsync();
+        Context.MessagesOfTheDay.Add(motd);
+        await Context.SaveChangesAsync();
 
         var updateDto = new UpdateMessageOfTheDayDto
         {
@@ -178,13 +170,11 @@ public class MessageOfTheDayControllerTests
     [Test]
     public async Task Update_PersistsChangesToDatabase()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<MessageOfTheDayController>>();
-        var controller = new MessageOfTheDayController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var motd = new MessageOfTheDay { Message = "Original", Month = 1, Day = 1 };
-        context.MessagesOfTheDay.Add(motd);
-        await context.SaveChangesAsync();
+        Context.MessagesOfTheDay.Add(motd);
+        await Context.SaveChangesAsync();
 
         var updateDto = new UpdateMessageOfTheDayDto
         {
@@ -196,7 +186,7 @@ public class MessageOfTheDayControllerTests
 
         await controller.Update(motd.Id, updateDto);
 
-        var updated = await context.MessagesOfTheDay.FindAsync(motd.Id);
+        var updated = await Context.MessagesOfTheDay.FindAsync(motd.Id);
         Assert.That(updated!.Message, Is.EqualTo("Updated"));
         Assert.That(updated.Month, Is.EqualTo(12));
         Assert.That(updated.Day, Is.EqualTo(31));
@@ -206,9 +196,7 @@ public class MessageOfTheDayControllerTests
     [Test]
     public async Task Update_Returns404WhenNotFound()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<MessageOfTheDayController>>();
-        var controller = new MessageOfTheDayController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var updateDto = new UpdateMessageOfTheDayDto
         {
@@ -225,15 +213,13 @@ public class MessageOfTheDayControllerTests
     [Test]
     public async Task Update_Returns409WhenDuplicateMonthDay()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<MessageOfTheDayController>>();
-        var controller = new MessageOfTheDayController(context, mockLogger.Object);
+        var controller = CreateController();
 
-        context.MessagesOfTheDay.Add(new MessageOfTheDay { Message = "First", Month = 1, Day = 1 });
-        context.MessagesOfTheDay.Add(new MessageOfTheDay { Message = "Second", Month = 6, Day = 15 });
-        await context.SaveChangesAsync();
+        Context.MessagesOfTheDay.Add(new MessageOfTheDay { Message = "First", Month = 1, Day = 1 });
+        Context.MessagesOfTheDay.Add(new MessageOfTheDay { Message = "Second", Month = 6, Day = 15 });
+        await Context.SaveChangesAsync();
 
-        var second = context.MessagesOfTheDay.First(e => e.Message == "Second");
+        var second = Context.MessagesOfTheDay.First(e => e.Message == "Second");
         var updateDto = new UpdateMessageOfTheDayDto
         {
             Message = "Updated Second",
@@ -249,13 +235,11 @@ public class MessageOfTheDayControllerTests
     [Test]
     public async Task Delete_Returns204OnSuccess()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<MessageOfTheDayController>>();
-        var controller = new MessageOfTheDayController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var motd = new MessageOfTheDay { Message = "To Delete", Month = 6, Day = 15 };
-        context.MessagesOfTheDay.Add(motd);
-        await context.SaveChangesAsync();
+        Context.MessagesOfTheDay.Add(motd);
+        await Context.SaveChangesAsync();
 
         var result = await controller.Delete(motd.Id);
 
@@ -265,27 +249,23 @@ public class MessageOfTheDayControllerTests
     [Test]
     public async Task Delete_RemovesMessageFromDatabase()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<MessageOfTheDayController>>();
-        var controller = new MessageOfTheDayController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var motd = new MessageOfTheDay { Message = "To Delete", Month = 6, Day = 15 };
-        context.MessagesOfTheDay.Add(motd);
-        await context.SaveChangesAsync();
+        Context.MessagesOfTheDay.Add(motd);
+        await Context.SaveChangesAsync();
         var motdId = motd.Id;
 
         await controller.Delete(motdId);
 
-        var deleted = await context.MessagesOfTheDay.FindAsync(motdId);
+        var deleted = await Context.MessagesOfTheDay.FindAsync(motdId);
         Assert.That(deleted, Is.Null);
     }
 
     [Test]
     public async Task Delete_Returns404WhenNotFound()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<MessageOfTheDayController>>();
-        var controller = new MessageOfTheDayController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var result = await controller.Delete(999);
 

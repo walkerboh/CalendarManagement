@@ -1,45 +1,44 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using CalendarManagementApi.Data;
 using CalendarManagementApi.DTOs;
 using CalendarManagementApi.Models;
+using CalendarManagementApi.Services;
 
 namespace CalendarManagementApi.Controllers;
 
 [ApiController]
-[Route("api/messageoftheday")]
+[Route("api/[controller]")]
 public class MessageOfTheDayController : ControllerBase
 {
-    private readonly CalendarDbContext _context;
+    private readonly IMessageOfTheDayService _service;
     private readonly ILogger<MessageOfTheDayController> _logger;
 
-    public MessageOfTheDayController(CalendarDbContext context, ILogger<MessageOfTheDayController> logger)
+    public MessageOfTheDayController(IMessageOfTheDayService service, ILogger<MessageOfTheDayController> logger)
     {
-        _context = context;
+        _service = service;
         _logger = logger;
     }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<MessageOfTheDayDto>>> GetAll()
     {
-        var messages = await _context.MessagesOfTheDay
-            .Select(e => new MessageOfTheDayDto
-            {
-                Id = e.Id,
-                Message = e.Message,
-                Month = e.Month,
-                Day = e.Day,
-                Layer = e.Layer
-            })
-            .ToListAsync();
+        var messages = await _service.GetAllAsync();
 
-        return Ok(messages);
+        var result = messages.Select(e => new MessageOfTheDayDto
+        {
+            Id = e.Id,
+            Message = e.Message,
+            Month = e.Month,
+            Day = e.Day,
+            Layer = e.Layer
+        });
+
+        return Ok(result);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<MessageOfTheDayDto>> GetById(int id)
     {
-        var motd = await _context.MessagesOfTheDay.FindAsync(id);
+        var motd = await _service.GetByIdAsync(id);
 
         if (motd == null)
         {
@@ -67,15 +66,14 @@ public class MessageOfTheDayController : ControllerBase
             Layer = dto.Layer
         };
 
-        var existing = await _context.MessagesOfTheDay
-            .AnyAsync(e => e.Month == dto.Month && e.Day == dto.Day);
-        if (existing)
+        try
         {
-            return Conflict($"A message of the day already exists for {dto.Month}/{dto.Day}.");
+            await _service.CreateAsync(motd);
         }
-
-        _context.MessagesOfTheDay.Add(motd);
-        await _context.SaveChangesAsync();
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(ex.Message);
+        }
 
         _logger.LogInformation("Created message of the day: {Message} on {Month}/{Day}", motd.Message, motd.Month, motd.Day);
 
@@ -94,26 +92,27 @@ public class MessageOfTheDayController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, UpdateMessageOfTheDayDto dto)
     {
-        var motd = await _context.MessagesOfTheDay.FindAsync(id);
-
-        if (motd == null)
+        var motd = new MessageOfTheDay
         {
-            return NotFound();
-        }
+            Id = id,
+            Message = dto.Message,
+            Month = dto.Month,
+            Day = dto.Day,
+            Layer = dto.Layer
+        };
 
-        var duplicate = await _context.MessagesOfTheDay
-            .AnyAsync(e => e.Month == dto.Month && e.Day == dto.Day && e.Id != id);
-        if (duplicate)
+        try
         {
-            return Conflict($"A message of the day already exists for {dto.Month}/{dto.Day}.");
+            var updated = await _service.UpdateAsync(motd);
+            if (!updated)
+            {
+                return NotFound();
+            }
         }
-
-        motd.Message = dto.Message;
-        motd.Month = dto.Month;
-        motd.Day = dto.Day;
-        motd.Layer = dto.Layer;
-
-        await _context.SaveChangesAsync();
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(ex.Message);
+        }
 
         _logger.LogInformation("Updated message of the day {Id}: {Message} on {Month}/{Day}", id, motd.Message, motd.Month, motd.Day);
 
@@ -123,17 +122,14 @@ public class MessageOfTheDayController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var motd = await _context.MessagesOfTheDay.FindAsync(id);
+        var deleted = await _service.DeleteAsync(id);
 
-        if (motd == null)
+        if (!deleted)
         {
             return NotFound();
         }
 
-        _context.MessagesOfTheDay.Remove(motd);
-        await _context.SaveChangesAsync();
-
-        _logger.LogInformation("Deleted message of the day {Id}: {Message}", id, motd.Message);
+        _logger.LogInformation("Deleted message of the day {Id}", id);
 
         return NoContent();
     }

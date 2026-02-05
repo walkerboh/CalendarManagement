@@ -1,6 +1,9 @@
+using CalendarManagementApi.Data;
 using CalendarManagementApi.Models;
 using CalendarManagementApi.Services;
 using CalendarManagementApi.Tests.Helpers;
+using Microsoft.Extensions.Logging;
+using Moq;
 using NUnit.Framework;
 
 namespace CalendarManagementApi.Tests.Services;
@@ -8,13 +11,30 @@ namespace CalendarManagementApi.Tests.Services;
 [TestFixture]
 public class CalendarServiceTests
 {
+    private CalendarDbContext _context = null!;
     private CalendarService _service = null!;
+    private Mock<IDateProvider> _mockDateProvider = null!;
 
     [SetUp]
     public void SetUp()
     {
-        var context = TestDbContextFactory.Create();
-        _service = new CalendarService(context);
+        _context = TestDbContextFactory.Create();
+        _mockDateProvider = new Mock<IDateProvider>();
+        _mockDateProvider.Setup(p => p.Today).Returns(DateOnly.FromDateTime(DateTime.Today));
+        var mockLogger = new Mock<ILogger<CalendarService>>();
+        _service = new CalendarService(_context, _mockDateProvider.Object, mockLogger.Object);
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        _context.Dispose();
+    }
+
+    private CalendarService CreateServiceWithContext(CalendarDbContext context)
+    {
+        var mockLogger = new Mock<ILogger<CalendarService>>();
+        return new CalendarService(context, _mockDateProvider.Object, mockLogger.Object);
     }
 
     #region CheckDayOfWeek Tests
@@ -481,7 +501,7 @@ public class CalendarServiceTests
     public async Task GetEventsForDate_ReturnsWaitingEventsThatArePastDue()
     {
         var context = TestDbContextFactory.Create();
-        var service = new CalendarService(context);
+        var service = CreateServiceWithContext(context);
 
         var pastDueEvent = new WaitingEvent
         {
@@ -509,7 +529,7 @@ public class CalendarServiceTests
     public async Task GetEventsForDate_ReturnsMatchingRepeatingEvents()
     {
         var context = TestDbContextFactory.Create();
-        var service = new CalendarService(context);
+        var service = CreateServiceWithContext(context);
 
         // Add a repeating event that occurs every Monday
         var mondayEvent = new RepeatingEvent
@@ -535,7 +555,7 @@ public class CalendarServiceTests
     public async Task GetEventsForDate_DoesNotReturnMessagesOfTheDay()
     {
         var context = TestDbContextFactory.Create();
-        var service = new CalendarService(context);
+        var service = CreateServiceWithContext(context);
 
         var motd = new MessageOfTheDay
         {
@@ -555,7 +575,7 @@ public class CalendarServiceTests
     public async Task GetEventsForDate_ReturnsEmptyListWhenNoMatches()
     {
         var context = TestDbContextFactory.Create();
-        var service = new CalendarService(context);
+        var service = CreateServiceWithContext(context);
 
         var result = await service.GetEventsForDate(new DateOnly(2026, 1, 24));
 
@@ -570,7 +590,7 @@ public class CalendarServiceTests
     public async Task GetMotdForDate_ReturnsMatchingMessages()
     {
         var context = TestDbContextFactory.Create();
-        var service = new CalendarService(context);
+        var service = CreateServiceWithContext(context);
 
         var birthday = new MessageOfTheDay
         {
@@ -600,7 +620,7 @@ public class CalendarServiceTests
     public async Task GetMotdForDate_ReturnsEmptyListWhenNoMatches()
     {
         var context = TestDbContextFactory.Create();
-        var service = new CalendarService(context);
+        var service = CreateServiceWithContext(context);
 
         var motd = new MessageOfTheDay
         {
@@ -710,7 +730,7 @@ public class CalendarServiceTests
     public async Task GetBirthdaysForDate_ReturnsBirthdaysWithin14DayWindow()
     {
         var context = TestDbContextFactory.Create();
-        var service = new CalendarService(context);
+        var service = CreateServiceWithContext(context);
 
         // Date: Feb 5, 2026 - window is Feb 5-19
         var birthday1 = new Birthday { Name = "Alice", Month = 2, Day = 5 };   // Day 0
@@ -730,7 +750,7 @@ public class CalendarServiceTests
     public async Task GetBirthdaysForDate_ReturnsEmptyListWhenNoBirthdaysInRange()
     {
         var context = TestDbContextFactory.Create();
-        var service = new CalendarService(context);
+        var service = CreateServiceWithContext(context);
 
         context.Birthdays.Add(new Birthday { Name = "Alice", Month = 6, Day = 15 });
         await context.SaveChangesAsync();
@@ -744,7 +764,7 @@ public class CalendarServiceTests
     public async Task GetBirthdaysForDate_CorrectlyCalculatesDaysAway()
     {
         var context = TestDbContextFactory.Create();
-        var service = new CalendarService(context);
+        var service = CreateServiceWithContext(context);
 
         var birthday1 = new Birthday { Name = "Same Day", Month = 2, Day = 5 };
         var birthday2 = new Birthday { Name = "Tomorrow", Month = 2, Day = 6 };
@@ -764,7 +784,7 @@ public class CalendarServiceTests
     public async Task GetBirthdaysForDate_HandlesYearBoundary()
     {
         var context = TestDbContextFactory.Create();
-        var service = new CalendarService(context);
+        var service = CreateServiceWithContext(context);
 
         // Date: Dec 28, 2026 - window includes Dec 28-31 and Jan 1-11
         var birthday1 = new Birthday { Name = "Dec 28", Month = 12, Day = 28 }; // Day 0
@@ -786,7 +806,7 @@ public class CalendarServiceTests
     public async Task GetBirthdaysForDate_CalculatesDaysAwayCorrectlyAcrossYearBoundary()
     {
         var context = TestDbContextFactory.Create();
-        var service = new CalendarService(context);
+        var service = CreateServiceWithContext(context);
 
         var birthday = new Birthday { Name = "Jan 5", Month = 1, Day = 5 };
         context.Birthdays.Add(birthday);
@@ -802,7 +822,7 @@ public class CalendarServiceTests
     public async Task GetBirthdaysForDate_ReturnsResultsOrderedByDaysAway()
     {
         var context = TestDbContextFactory.Create();
-        var service = new CalendarService(context);
+        var service = CreateServiceWithContext(context);
 
         // Add in reverse order
         var birthday1 = new Birthday { Name = "Last", Month = 2, Day = 15 };
@@ -822,7 +842,7 @@ public class CalendarServiceTests
     public async Task GetBirthdaysForDate_ExcludesBirthdaysOutsideWindow()
     {
         var context = TestDbContextFactory.Create();
-        var service = new CalendarService(context);
+        var service = CreateServiceWithContext(context);
 
         var insideWindow = new Birthday { Name = "Inside", Month = 2, Day = 10 };
         var outsideWindow = new Birthday { Name = "Outside", Month = 3, Day = 1 };
@@ -839,7 +859,7 @@ public class CalendarServiceTests
     public async Task GetBirthdaysForDate_ReturnsCorrectDtoFields()
     {
         var context = TestDbContextFactory.Create();
-        var service = new CalendarService(context);
+        var service = CreateServiceWithContext(context);
 
         var birthday = new Birthday { Name = "Alice", Month = 2, Day = 10 };
         context.Birthdays.Add(birthday);

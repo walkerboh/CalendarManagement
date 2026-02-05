@@ -1,16 +1,19 @@
 using CalendarManagementApi.Data;
 using CalendarManagementApi.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace CalendarManagementApi.Services;
 
 public class RepeatingEventService : IRepeatingEventService
 {
     private readonly CalendarDbContext _context;
+    private readonly ILogger<RepeatingEventService> _logger;
 
-    public RepeatingEventService(CalendarDbContext context)
+    public RepeatingEventService(CalendarDbContext context, ILogger<RepeatingEventService> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public async Task<List<RepeatingEvent>> GetAllAsync()
@@ -29,6 +32,7 @@ public class RepeatingEventService : IRepeatingEventService
     {
         _context.RepeatingEvents.Add(repeatingEvent);
         await _context.SaveChangesAsync();
+        _logger.LogInformation("Created repeating event {Id}: {Name} with type {Type}", repeatingEvent.Id, repeatingEvent.Name, repeatingEvent.RepeatType);
         return repeatingEvent;
     }
 
@@ -50,6 +54,7 @@ public class RepeatingEventService : IRepeatingEventService
         existing.Layer = repeatingEvent.Layer;
 
         await _context.SaveChangesAsync();
+        _logger.LogInformation("Updated repeating event {Id}: {Name} with type {Type}", repeatingEvent.Id, repeatingEvent.Name, repeatingEvent.RepeatType);
         return true;
     }
 
@@ -61,6 +66,7 @@ public class RepeatingEventService : IRepeatingEventService
 
         _context.RepeatingEvents.Remove(repeatingEvent);
         await _context.SaveChangesAsync();
+        _logger.LogInformation("Deleted repeating event {Id}: {Name}", id, repeatingEvent.Name);
         return true;
     }
 }

@@ -1,6 +1,7 @@
 using CalendarManagementApi.Controllers;
 using CalendarManagementApi.DTOs;
 using CalendarManagementApi.Models;
+using CalendarManagementApi.Services;
 using CalendarManagementApi.Tests.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -10,20 +11,25 @@ using NUnit.Framework;
 namespace CalendarManagementApi.Tests.Controllers;
 
 [TestFixture]
-public class BirthdaysControllerTests
+public class BirthdaysControllerTests : ControllerTestBase<BirthdaysController>
 {
+    private BirthdaysController CreateController()
+    {
+        var mockServiceLogger = new Mock<ILogger<BirthdayService>>();
+        var service = new BirthdayService(Context, mockServiceLogger.Object);
+        return new BirthdaysController(service, MockLogger.Object);
+    }
+
     [Test]
     public async Task GetAll_ReturnsAllBirthdays()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<BirthdaysController>>();
-        var controller = new BirthdaysController(context, mockLogger.Object);
+        var controller = CreateController();
 
-        context.Birthdays.AddRange(
+        Context.Birthdays.AddRange(
             new Birthday { Name = "Alice", Month = 3, Day = 15 },
             new Birthday { Name = "Bob", Month = 7, Day = 4 }
         );
-        await context.SaveChangesAsync();
+        await Context.SaveChangesAsync();
 
         var result = await controller.GetAll();
 
@@ -36,9 +42,7 @@ public class BirthdaysControllerTests
     [Test]
     public async Task GetAll_ReturnsEmptyListWhenNoBirthdays()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<BirthdaysController>>();
-        var controller = new BirthdaysController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var result = await controller.GetAll();
 
@@ -51,13 +55,11 @@ public class BirthdaysControllerTests
     [Test]
     public async Task GetById_ReturnsBirthdayWhenExists()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<BirthdaysController>>();
-        var controller = new BirthdaysController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var birthday = new Birthday { Name = "Alice", Month = 3, Day = 15 };
-        context.Birthdays.Add(birthday);
-        await context.SaveChangesAsync();
+        Context.Birthdays.Add(birthday);
+        await Context.SaveChangesAsync();
 
         var result = await controller.GetById(birthday.Id);
 
@@ -72,9 +74,7 @@ public class BirthdaysControllerTests
     [Test]
     public async Task GetById_Returns404WhenNotFound()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<BirthdaysController>>();
-        var controller = new BirthdaysController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var result = await controller.GetById(999);
 
@@ -84,9 +84,7 @@ public class BirthdaysControllerTests
     [Test]
     public async Task Create_Returns201WithCreatedBirthday()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<BirthdaysController>>();
-        var controller = new BirthdaysController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var dto = new CreateBirthdayDto
         {
@@ -108,9 +106,7 @@ public class BirthdaysControllerTests
     [Test]
     public async Task Create_PersistsBirthdayToDatabase()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<BirthdaysController>>();
-        var controller = new BirthdaysController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var dto = new CreateBirthdayDto
         {
@@ -121,7 +117,7 @@ public class BirthdaysControllerTests
 
         await controller.Create(dto);
 
-        var saved = context.Birthdays.FirstOrDefault(e => e.Name == "Diana");
+        var saved = Context.Birthdays.FirstOrDefault(e => e.Name == "Diana");
         Assert.That(saved, Is.Not.Null);
         Assert.That(saved!.Month, Is.EqualTo(11));
         Assert.That(saved.Day, Is.EqualTo(8));
@@ -130,12 +126,10 @@ public class BirthdaysControllerTests
     [Test]
     public async Task Create_AllowsDuplicateMonthDay()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<BirthdaysController>>();
-        var controller = new BirthdaysController(context, mockLogger.Object);
+        var controller = CreateController();
 
-        context.Birthdays.Add(new Birthday { Name = "Alice", Month = 5, Day = 15 });
-        await context.SaveChangesAsync();
+        Context.Birthdays.Add(new Birthday { Name = "Alice", Month = 5, Day = 15 });
+        await Context.SaveChangesAsync();
 
         var dto = new CreateBirthdayDto
         {
@@ -147,19 +141,17 @@ public class BirthdaysControllerTests
         var result = await controller.Create(dto);
 
         Assert.That(result.Result, Is.TypeOf<CreatedAtActionResult>());
-        Assert.That(context.Birthdays.Count(), Is.EqualTo(2));
+        Assert.That(Context.Birthdays.Count(), Is.EqualTo(2));
     }
 
     [Test]
     public async Task Update_Returns204OnSuccess()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<BirthdaysController>>();
-        var controller = new BirthdaysController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var birthday = new Birthday { Name = "Original", Month = 1, Day = 1 };
-        context.Birthdays.Add(birthday);
-        await context.SaveChangesAsync();
+        Context.Birthdays.Add(birthday);
+        await Context.SaveChangesAsync();
 
         var updateDto = new UpdateBirthdayDto
         {
@@ -176,13 +168,11 @@ public class BirthdaysControllerTests
     [Test]
     public async Task Update_PersistsChangesToDatabase()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<BirthdaysController>>();
-        var controller = new BirthdaysController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var birthday = new Birthday { Name = "Original", Month = 1, Day = 1 };
-        context.Birthdays.Add(birthday);
-        await context.SaveChangesAsync();
+        Context.Birthdays.Add(birthday);
+        await Context.SaveChangesAsync();
 
         var updateDto = new UpdateBirthdayDto
         {
@@ -193,7 +183,7 @@ public class BirthdaysControllerTests
 
         await controller.Update(birthday.Id, updateDto);
 
-        var updated = await context.Birthdays.FindAsync(birthday.Id);
+        var updated = await Context.Birthdays.FindAsync(birthday.Id);
         Assert.That(updated!.Name, Is.EqualTo("Updated"));
         Assert.That(updated.Month, Is.EqualTo(12));
         Assert.That(updated.Day, Is.EqualTo(31));
@@ -202,9 +192,7 @@ public class BirthdaysControllerTests
     [Test]
     public async Task Update_Returns404WhenNotFound()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<BirthdaysController>>();
-        var controller = new BirthdaysController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var updateDto = new UpdateBirthdayDto
         {
@@ -221,13 +209,11 @@ public class BirthdaysControllerTests
     [Test]
     public async Task Delete_Returns204OnSuccess()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<BirthdaysController>>();
-        var controller = new BirthdaysController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var birthday = new Birthday { Name = "To Delete", Month = 6, Day = 15 };
-        context.Birthdays.Add(birthday);
-        await context.SaveChangesAsync();
+        Context.Birthdays.Add(birthday);
+        await Context.SaveChangesAsync();
 
         var result = await controller.Delete(birthday.Id);
 
@@ -237,27 +223,23 @@ public class BirthdaysControllerTests
     [Test]
     public async Task Delete_RemovesBirthdayFromDatabase()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<BirthdaysController>>();
-        var controller = new BirthdaysController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var birthday = new Birthday { Name = "To Delete", Month = 6, Day = 15 };
-        context.Birthdays.Add(birthday);
-        await context.SaveChangesAsync();
+        Context.Birthdays.Add(birthday);
+        await Context.SaveChangesAsync();
         var birthdayId = birthday.Id;
 
         await controller.Delete(birthdayId);
 
-        var deleted = await context.Birthdays.FindAsync(birthdayId);
+        var deleted = await Context.Birthdays.FindAsync(birthdayId);
         Assert.That(deleted, Is.Null);
     }
 
     [Test]
     public async Task Delete_Returns404WhenNotFound()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<BirthdaysController>>();
-        var controller = new BirthdaysController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var result = await controller.Delete(999);
 

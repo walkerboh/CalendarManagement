@@ -1,6 +1,7 @@
 using CalendarManagementApi.Controllers;
 using CalendarManagementApi.DTOs;
 using CalendarManagementApi.Models;
+using CalendarManagementApi.Services;
 using CalendarManagementApi.Tests.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -10,22 +11,27 @@ using NUnit.Framework;
 namespace CalendarManagementApi.Tests.Controllers;
 
 [TestFixture]
-public class WaitingEventsControllerTests
+public class WaitingEventsControllerTests : ControllerTestBase<WaitingEventsController>
 {
+    private WaitingEventsController CreateController()
+    {
+        var mockServiceLogger = new Mock<ILogger<WaitingEventService>>();
+        var service = new WaitingEventService(Context, MockDateProvider.Object, mockServiceLogger.Object);
+        return new WaitingEventsController(service, MockDateProvider.Object, MockLogger.Object);
+    }
+
     #region GetAll Tests
 
     [Test]
     public async Task GetAll_ReturnsAllEvents()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
-        var controller = new WaitingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
-        context.WaitingEvents.AddRange(
+        Context.WaitingEvents.AddRange(
             new WaitingEvent { Name = "Task 1", OccurrenceDate = new DateOnly(2026, 1, 15) },
             new WaitingEvent { Name = "Task 2", OccurrenceDate = new DateOnly(2026, 2, 20) }
         );
-        await context.SaveChangesAsync();
+        await Context.SaveChangesAsync();
 
         var result = await controller.GetAll();
 
@@ -38,9 +44,7 @@ public class WaitingEventsControllerTests
     [Test]
     public async Task GetAll_ReturnsEmptyListWhenNoEvents()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
-        var controller = new WaitingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var result = await controller.GetAll();
 
@@ -57,17 +61,15 @@ public class WaitingEventsControllerTests
     [Test]
     public async Task GetById_ReturnsEventWhenExists()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
-        var controller = new WaitingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var waitingEvent = new WaitingEvent
         {
             Name = "Test Task",
             OccurrenceDate = new DateOnly(2026, 3, 15)
         };
-        context.WaitingEvents.Add(waitingEvent);
-        await context.SaveChangesAsync();
+        Context.WaitingEvents.Add(waitingEvent);
+        await Context.SaveChangesAsync();
 
         var result = await controller.GetById(waitingEvent.Id);
 
@@ -80,9 +82,7 @@ public class WaitingEventsControllerTests
     [Test]
     public async Task GetById_Returns404WhenNotFound()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
-        var controller = new WaitingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var result = await controller.GetById(999);
 
@@ -96,17 +96,15 @@ public class WaitingEventsControllerTests
     [Test]
     public async Task GetAll_IsPastDueIsTrue_WhenOccurrenceDateIsBeforeToday()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
-        var controller = new WaitingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var pastDueEvent = new WaitingEvent
         {
             Name = "Past Due",
             OccurrenceDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-5))
         };
-        context.WaitingEvents.Add(pastDueEvent);
-        await context.SaveChangesAsync();
+        Context.WaitingEvents.Add(pastDueEvent);
+        await Context.SaveChangesAsync();
 
         var result = await controller.GetAll();
 
@@ -119,17 +117,15 @@ public class WaitingEventsControllerTests
     [Test]
     public async Task GetAll_IsPastDueIsTrue_WhenOccurrenceDateIsToday()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
-        var controller = new WaitingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var todayEvent = new WaitingEvent
         {
             Name = "Due Today",
             OccurrenceDate = DateOnly.FromDateTime(DateTime.Today)
         };
-        context.WaitingEvents.Add(todayEvent);
-        await context.SaveChangesAsync();
+        Context.WaitingEvents.Add(todayEvent);
+        await Context.SaveChangesAsync();
 
         var result = await controller.GetAll();
 
@@ -142,17 +138,15 @@ public class WaitingEventsControllerTests
     [Test]
     public async Task GetAll_IsPastDueIsFalse_WhenOccurrenceDateIsAfterToday()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
-        var controller = new WaitingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var futureEvent = new WaitingEvent
         {
             Name = "Future",
             OccurrenceDate = DateOnly.FromDateTime(DateTime.Today.AddDays(7))
         };
-        context.WaitingEvents.Add(futureEvent);
-        await context.SaveChangesAsync();
+        Context.WaitingEvents.Add(futureEvent);
+        await Context.SaveChangesAsync();
 
         var result = await controller.GetAll();
 
@@ -165,17 +159,15 @@ public class WaitingEventsControllerTests
     [Test]
     public async Task GetById_IsPastDueIsCorrect()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
-        var controller = new WaitingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var pastDueEvent = new WaitingEvent
         {
             Name = "Past Due",
             OccurrenceDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-1))
         };
-        context.WaitingEvents.Add(pastDueEvent);
-        await context.SaveChangesAsync();
+        Context.WaitingEvents.Add(pastDueEvent);
+        await Context.SaveChangesAsync();
 
         var result = await controller.GetById(pastDueEvent.Id);
 
@@ -191,9 +183,7 @@ public class WaitingEventsControllerTests
     [Test]
     public async Task Create_Returns201WithCreatedEvent()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
-        var controller = new WaitingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var dto = new CreateWaitingEventDto
         {
@@ -216,9 +206,7 @@ public class WaitingEventsControllerTests
     [Test]
     public async Task Create_PersistsEventToDatabase()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
-        var controller = new WaitingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var dto = new CreateWaitingEventDto
         {
@@ -228,7 +216,7 @@ public class WaitingEventsControllerTests
 
         await controller.Create(dto);
 
-        var savedEvent = context.WaitingEvents.FirstOrDefault(e => e.Name == "Persisted Task");
+        var savedEvent = Context.WaitingEvents.FirstOrDefault(e => e.Name == "Persisted Task");
         Assert.That(savedEvent, Is.Not.Null);
         Assert.That(savedEvent!.OccurrenceDate, Is.EqualTo(new DateOnly(2026, 8, 20)));
     }
@@ -240,17 +228,15 @@ public class WaitingEventsControllerTests
     [Test]
     public async Task Update_Returns204OnSuccess()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
-        var controller = new WaitingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var waitingEvent = new WaitingEvent
         {
             Name = "Original",
             OccurrenceDate = new DateOnly(2026, 1, 1)
         };
-        context.WaitingEvents.Add(waitingEvent);
-        await context.SaveChangesAsync();
+        Context.WaitingEvents.Add(waitingEvent);
+        await Context.SaveChangesAsync();
 
         var updateDto = new UpdateWaitingEventDto
         {
@@ -266,17 +252,15 @@ public class WaitingEventsControllerTests
     [Test]
     public async Task Update_PersistsChangesToDatabase()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
-        var controller = new WaitingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var waitingEvent = new WaitingEvent
         {
             Name = "Original",
             OccurrenceDate = new DateOnly(2026, 1, 1)
         };
-        context.WaitingEvents.Add(waitingEvent);
-        await context.SaveChangesAsync();
+        Context.WaitingEvents.Add(waitingEvent);
+        await Context.SaveChangesAsync();
 
         var updateDto = new UpdateWaitingEventDto
         {
@@ -287,7 +271,7 @@ public class WaitingEventsControllerTests
 
         await controller.Update(waitingEvent.Id, updateDto);
 
-        var updatedEvent = await context.WaitingEvents.FindAsync(waitingEvent.Id);
+        var updatedEvent = await Context.WaitingEvents.FindAsync(waitingEvent.Id);
         Assert.That(updatedEvent!.Name, Is.EqualTo("Updated"));
         Assert.That(updatedEvent.OccurrenceDate, Is.EqualTo(new DateOnly(2026, 12, 31)));
         Assert.That(updatedEvent.Layer, Is.EqualTo(Layer.Red));
@@ -296,9 +280,7 @@ public class WaitingEventsControllerTests
     [Test]
     public async Task Update_Returns404WhenNotFound()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
-        var controller = new WaitingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var updateDto = new UpdateWaitingEventDto
         {
@@ -318,17 +300,15 @@ public class WaitingEventsControllerTests
     [Test]
     public async Task Delete_Returns204OnSuccess()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
-        var controller = new WaitingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var waitingEvent = new WaitingEvent
         {
             Name = "To Delete",
             OccurrenceDate = new DateOnly(2026, 6, 15)
         };
-        context.WaitingEvents.Add(waitingEvent);
-        await context.SaveChangesAsync();
+        Context.WaitingEvents.Add(waitingEvent);
+        await Context.SaveChangesAsync();
 
         var result = await controller.Delete(waitingEvent.Id);
 
@@ -338,31 +318,27 @@ public class WaitingEventsControllerTests
     [Test]
     public async Task Delete_RemovesEventFromDatabase()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
-        var controller = new WaitingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var waitingEvent = new WaitingEvent
         {
             Name = "To Delete",
             OccurrenceDate = new DateOnly(2026, 6, 15)
         };
-        context.WaitingEvents.Add(waitingEvent);
-        await context.SaveChangesAsync();
+        Context.WaitingEvents.Add(waitingEvent);
+        await Context.SaveChangesAsync();
         var eventId = waitingEvent.Id;
 
         await controller.Delete(eventId);
 
-        var deletedEvent = await context.WaitingEvents.FindAsync(eventId);
+        var deletedEvent = await Context.WaitingEvents.FindAsync(eventId);
         Assert.That(deletedEvent, Is.Null);
     }
 
     [Test]
     public async Task Delete_Returns404WhenNotFound()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
-        var controller = new WaitingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var result = await controller.Delete(999);
 
@@ -376,17 +352,15 @@ public class WaitingEventsControllerTests
     [Test]
     public async Task PostponeWeek_Returns204OnSuccess()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
-        var controller = new WaitingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var waitingEvent = new WaitingEvent
         {
             Name = "Task",
             OccurrenceDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-5))
         };
-        context.WaitingEvents.Add(waitingEvent);
-        await context.SaveChangesAsync();
+        Context.WaitingEvents.Add(waitingEvent);
+        await Context.SaveChangesAsync();
 
         var result = await controller.PostponeWeek(waitingEvent.Id);
 
@@ -396,21 +370,19 @@ public class WaitingEventsControllerTests
     [Test]
     public async Task PostponeWeek_Adds7DaysFromToday()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
-        var controller = new WaitingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var waitingEvent = new WaitingEvent
         {
             Name = "Task",
             OccurrenceDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-5))
         };
-        context.WaitingEvents.Add(waitingEvent);
-        await context.SaveChangesAsync();
+        Context.WaitingEvents.Add(waitingEvent);
+        await Context.SaveChangesAsync();
 
         await controller.PostponeWeek(waitingEvent.Id);
 
-        var updatedEvent = await context.WaitingEvents.FindAsync(waitingEvent.Id);
+        var updatedEvent = await Context.WaitingEvents.FindAsync(waitingEvent.Id);
         var expectedDate = DateOnly.FromDateTime(DateTime.Today.AddDays(7));
         Assert.That(updatedEvent!.OccurrenceDate, Is.EqualTo(expectedDate));
     }
@@ -418,9 +390,7 @@ public class WaitingEventsControllerTests
     [Test]
     public async Task PostponeWeek_Returns404WhenNotFound()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
-        var controller = new WaitingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var result = await controller.PostponeWeek(999);
 
@@ -434,17 +404,15 @@ public class WaitingEventsControllerTests
     [Test]
     public async Task PostponeMonth_Returns204OnSuccess()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
-        var controller = new WaitingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var waitingEvent = new WaitingEvent
         {
             Name = "Task",
             OccurrenceDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-5))
         };
-        context.WaitingEvents.Add(waitingEvent);
-        await context.SaveChangesAsync();
+        Context.WaitingEvents.Add(waitingEvent);
+        await Context.SaveChangesAsync();
 
         var result = await controller.PostponeMonth(waitingEvent.Id);
 
@@ -454,21 +422,19 @@ public class WaitingEventsControllerTests
     [Test]
     public async Task PostponeMonth_Adds1MonthFromToday()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
-        var controller = new WaitingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var waitingEvent = new WaitingEvent
         {
             Name = "Task",
             OccurrenceDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-5))
         };
-        context.WaitingEvents.Add(waitingEvent);
-        await context.SaveChangesAsync();
+        Context.WaitingEvents.Add(waitingEvent);
+        await Context.SaveChangesAsync();
 
         await controller.PostponeMonth(waitingEvent.Id);
 
-        var updatedEvent = await context.WaitingEvents.FindAsync(waitingEvent.Id);
+        var updatedEvent = await Context.WaitingEvents.FindAsync(waitingEvent.Id);
         var expectedDate = DateOnly.FromDateTime(DateTime.Today.AddMonths(1));
         Assert.That(updatedEvent!.OccurrenceDate, Is.EqualTo(expectedDate));
     }
@@ -476,9 +442,7 @@ public class WaitingEventsControllerTests
     [Test]
     public async Task PostponeMonth_Returns404WhenNotFound()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
-        var controller = new WaitingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var result = await controller.PostponeMonth(999);
 
@@ -492,17 +456,15 @@ public class WaitingEventsControllerTests
     [Test]
     public async Task PostponeToDate_Returns204OnSuccess()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
-        var controller = new WaitingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var waitingEvent = new WaitingEvent
         {
             Name = "Task",
             OccurrenceDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-5))
         };
-        context.WaitingEvents.Add(waitingEvent);
-        await context.SaveChangesAsync();
+        Context.WaitingEvents.Add(waitingEvent);
+        await Context.SaveChangesAsync();
 
         var dto = new PostponeDateDto { Date = new DateOnly(2026, 6, 15) };
         var result = await controller.PostponeToDate(waitingEvent.Id, dto);
@@ -513,32 +475,28 @@ public class WaitingEventsControllerTests
     [Test]
     public async Task PostponeToDate_SetsCorrectDate()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
-        var controller = new WaitingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var waitingEvent = new WaitingEvent
         {
             Name = "Task",
             OccurrenceDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-5))
         };
-        context.WaitingEvents.Add(waitingEvent);
-        await context.SaveChangesAsync();
+        Context.WaitingEvents.Add(waitingEvent);
+        await Context.SaveChangesAsync();
 
         var targetDate = new DateOnly(2026, 9, 20);
         var dto = new PostponeDateDto { Date = targetDate };
         await controller.PostponeToDate(waitingEvent.Id, dto);
 
-        var updatedEvent = await context.WaitingEvents.FindAsync(waitingEvent.Id);
+        var updatedEvent = await Context.WaitingEvents.FindAsync(waitingEvent.Id);
         Assert.That(updatedEvent!.OccurrenceDate, Is.EqualTo(targetDate));
     }
 
     [Test]
     public async Task PostponeToDate_Returns404WhenNotFound()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
-        var controller = new WaitingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var dto = new PostponeDateDto { Date = new DateOnly(2026, 6, 15) };
         var result = await controller.PostponeToDate(999, dto);

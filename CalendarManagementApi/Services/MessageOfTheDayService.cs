@@ -1,16 +1,19 @@
 using CalendarManagementApi.Data;
 using CalendarManagementApi.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace CalendarManagementApi.Services;
 
 public class MessageOfTheDayService : IMessageOfTheDayService
 {
     private readonly CalendarDbContext _context;
+    private readonly ILogger<MessageOfTheDayService> _logger;
 
-    public MessageOfTheDayService(CalendarDbContext context)
+    public MessageOfTheDayService(CalendarDbContext context, ILogger<MessageOfTheDayService> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public async Task<List<MessageOfTheDay>> GetAllAsync()
@@ -35,6 +38,7 @@ public class MessageOfTheDayService : IMessageOfTheDayService
 
         _context.MessagesOfTheDay.Add(messageOfTheDay);
         await _context.SaveChangesAsync();
+        _logger.LogInformation("Created message of the day {Id}: {Message} on {Month}/{Day}", messageOfTheDay.Id, messageOfTheDay.Message, messageOfTheDay.Month, messageOfTheDay.Day);
         return messageOfTheDay;
     }
 
@@ -55,6 +59,7 @@ public class MessageOfTheDayService : IMessageOfTheDayService
         existingEntity.Layer = messageOfTheDay.Layer;
 
         await _context.SaveChangesAsync();
+        _logger.LogInformation("Updated message of the day {Id}: {Message} on {Month}/{Day}", messageOfTheDay.Id, messageOfTheDay.Message, messageOfTheDay.Month, messageOfTheDay.Day);
         return true;
     }
 
@@ -66,6 +71,7 @@ public class MessageOfTheDayService : IMessageOfTheDayService
 
         _context.MessagesOfTheDay.Remove(messageOfTheDay);
         await _context.SaveChangesAsync();
+        _logger.LogInformation("Deleted message of the day {Id}: {Message}", id, messageOfTheDay.Message);
         return true;
     }
 }

@@ -1,6 +1,7 @@
 using CalendarManagementApi.Controllers;
 using CalendarManagementApi.DTOs;
 using CalendarManagementApi.Models;
+using CalendarManagementApi.Services;
 using CalendarManagementApi.Tests.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -10,22 +11,27 @@ using NUnit.Framework;
 namespace CalendarManagementApi.Tests.Controllers;
 
 [TestFixture]
-public class RepeatingEventsControllerTests
+public class RepeatingEventsControllerTests : ControllerTestBase<RepeatingEventsController>
 {
+    private RepeatingEventsController CreateController()
+    {
+        var mockServiceLogger = new Mock<ILogger<RepeatingEventService>>();
+        var service = new RepeatingEventService(Context, mockServiceLogger.Object);
+        return new RepeatingEventsController(service, MockLogger.Object);
+    }
+
     #region GetAll Tests
 
     [Test]
     public async Task GetAll_ReturnsAllEvents()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<RepeatingEventsController>>();
-        var controller = new RepeatingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
-        context.RepeatingEvents.AddRange(
+        Context.RepeatingEvents.AddRange(
             new RepeatingEvent { Name = "Weekly", RepeatType = RepeatType.DayOfWeek, DayOfWeek = 1 },
             new RepeatingEvent { Name = "Monthly", RepeatType = RepeatType.DayOfWeekOfMonth, DayOfWeek = 2, WeeksOfMonth = "1,3" }
         );
-        await context.SaveChangesAsync();
+        await Context.SaveChangesAsync();
 
         var result = await controller.GetAll();
 
@@ -38,9 +44,7 @@ public class RepeatingEventsControllerTests
     [Test]
     public async Task GetAll_ReturnsEmptyListWhenNoEvents()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<RepeatingEventsController>>();
-        var controller = new RepeatingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var result = await controller.GetAll();
 
@@ -57,9 +61,7 @@ public class RepeatingEventsControllerTests
     [Test]
     public async Task GetById_ReturnsEventWhenExists()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<RepeatingEventsController>>();
-        var controller = new RepeatingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var repeatingEvent = new RepeatingEvent
         {
@@ -67,8 +69,8 @@ public class RepeatingEventsControllerTests
             RepeatType = RepeatType.DayOfWeek,
             DayOfWeek = 1
         };
-        context.RepeatingEvents.Add(repeatingEvent);
-        await context.SaveChangesAsync();
+        Context.RepeatingEvents.Add(repeatingEvent);
+        await Context.SaveChangesAsync();
 
         var result = await controller.GetById(repeatingEvent.Id);
 
@@ -83,9 +85,7 @@ public class RepeatingEventsControllerTests
     [Test]
     public async Task GetById_Returns404WhenNotFound()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<RepeatingEventsController>>();
-        var controller = new RepeatingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var result = await controller.GetById(999);
 
@@ -99,9 +99,7 @@ public class RepeatingEventsControllerTests
     [Test]
     public async Task Create_DayOfWeekType_Returns201WithCreatedEvent()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<RepeatingEventsController>>();
-        var controller = new RepeatingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var dto = new CreateRepeatingEventDto
         {
@@ -129,9 +127,7 @@ public class RepeatingEventsControllerTests
     [Test]
     public async Task Create_DayOfWeekOfMonthType_Returns201WithCreatedEvent()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<RepeatingEventsController>>();
-        var controller = new RepeatingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var dto = new CreateRepeatingEventDto
         {
@@ -153,9 +149,7 @@ public class RepeatingEventsControllerTests
     [Test]
     public async Task Create_DayOfWeekOfMonthType_WithMultipleWeeks_PersistsCorrectly()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<RepeatingEventsController>>();
-        var controller = new RepeatingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var dto = new CreateRepeatingEventDto
         {
@@ -167,7 +161,7 @@ public class RepeatingEventsControllerTests
 
         await controller.Create(dto);
 
-        var savedEvent = context.RepeatingEvents.FirstOrDefault(e => e.Name == "Bi-weekly Friday");
+        var savedEvent = Context.RepeatingEvents.FirstOrDefault(e => e.Name == "Bi-weekly Friday");
         Assert.That(savedEvent, Is.Not.Null);
         Assert.That(savedEvent!.WeeksOfMonth, Is.EqualTo("1,3"));
     }
@@ -179,9 +173,7 @@ public class RepeatingEventsControllerTests
     [Test]
     public async Task Create_IntervalType_Returns201WithCreatedEvent()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<RepeatingEventsController>>();
-        var controller = new RepeatingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var dto = new CreateRepeatingEventDto
         {
@@ -208,9 +200,7 @@ public class RepeatingEventsControllerTests
     [Test]
     public async Task Create_DateType_Returns201WithCreatedEvent()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<RepeatingEventsController>>();
-        var controller = new RepeatingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var dto = new CreateRepeatingEventDto
         {
@@ -233,9 +223,7 @@ public class RepeatingEventsControllerTests
     [Test]
     public async Task Create_DateType_MapsMonthAndDay()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<RepeatingEventsController>>();
-        var controller = new RepeatingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var dto = new CreateRepeatingEventDto
         {
@@ -247,7 +235,7 @@ public class RepeatingEventsControllerTests
 
         await controller.Create(dto);
 
-        var savedEvent = context.RepeatingEvents.FirstOrDefault(e => e.Name == "Christmas");
+        var savedEvent = Context.RepeatingEvents.FirstOrDefault(e => e.Name == "Christmas");
         Assert.That(savedEvent, Is.Not.Null);
         Assert.That(savedEvent!.Month, Is.EqualTo(12));
         Assert.That(savedEvent.Day, Is.EqualTo(25));
@@ -260,9 +248,7 @@ public class RepeatingEventsControllerTests
     [Test]
     public async Task Update_Returns204OnSuccess()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<RepeatingEventsController>>();
-        var controller = new RepeatingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var repeatingEvent = new RepeatingEvent
         {
@@ -270,8 +256,8 @@ public class RepeatingEventsControllerTests
             RepeatType = RepeatType.DayOfWeek,
             DayOfWeek = 1
         };
-        context.RepeatingEvents.Add(repeatingEvent);
-        await context.SaveChangesAsync();
+        Context.RepeatingEvents.Add(repeatingEvent);
+        await Context.SaveChangesAsync();
 
         var updateDto = new UpdateRepeatingEventDto
         {
@@ -288,9 +274,7 @@ public class RepeatingEventsControllerTests
     [Test]
     public async Task Update_PersistsChangesToDatabase()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<RepeatingEventsController>>();
-        var controller = new RepeatingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var repeatingEvent = new RepeatingEvent
         {
@@ -298,8 +282,8 @@ public class RepeatingEventsControllerTests
             RepeatType = RepeatType.DayOfWeek,
             DayOfWeek = 1
         };
-        context.RepeatingEvents.Add(repeatingEvent);
-        await context.SaveChangesAsync();
+        Context.RepeatingEvents.Add(repeatingEvent);
+        await Context.SaveChangesAsync();
 
         var updateDto = new UpdateRepeatingEventDto
         {
@@ -312,7 +296,7 @@ public class RepeatingEventsControllerTests
 
         await controller.Update(repeatingEvent.Id, updateDto);
 
-        var updatedEvent = await context.RepeatingEvents.FindAsync(repeatingEvent.Id);
+        var updatedEvent = await Context.RepeatingEvents.FindAsync(repeatingEvent.Id);
         Assert.That(updatedEvent!.Name, Is.EqualTo("Updated Meeting"));
         Assert.That(updatedEvent.RepeatType, Is.EqualTo(RepeatType.Interval));
         Assert.That(updatedEvent.IntervalDays, Is.EqualTo(7));
@@ -322,9 +306,7 @@ public class RepeatingEventsControllerTests
     [Test]
     public async Task Update_Returns404WhenNotFound()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<RepeatingEventsController>>();
-        var controller = new RepeatingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var updateDto = new UpdateRepeatingEventDto
         {
@@ -341,9 +323,7 @@ public class RepeatingEventsControllerTests
     [Test]
     public async Task Update_CanChangeRepeatType()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<RepeatingEventsController>>();
-        var controller = new RepeatingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var repeatingEvent = new RepeatingEvent
         {
@@ -351,8 +331,8 @@ public class RepeatingEventsControllerTests
             RepeatType = RepeatType.DayOfWeek,
             DayOfWeek = 1
         };
-        context.RepeatingEvents.Add(repeatingEvent);
-        await context.SaveChangesAsync();
+        Context.RepeatingEvents.Add(repeatingEvent);
+        await Context.SaveChangesAsync();
 
         var updateDto = new UpdateRepeatingEventDto
         {
@@ -364,7 +344,7 @@ public class RepeatingEventsControllerTests
 
         await controller.Update(repeatingEvent.Id, updateDto);
 
-        var updatedEvent = await context.RepeatingEvents.FindAsync(repeatingEvent.Id);
+        var updatedEvent = await Context.RepeatingEvents.FindAsync(repeatingEvent.Id);
         Assert.That(updatedEvent!.RepeatType, Is.EqualTo(RepeatType.Date));
         Assert.That(updatedEvent.Month, Is.EqualTo(7));
         Assert.That(updatedEvent.Day, Is.EqualTo(4));
@@ -377,9 +357,7 @@ public class RepeatingEventsControllerTests
     [Test]
     public async Task Delete_Returns204OnSuccess()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<RepeatingEventsController>>();
-        var controller = new RepeatingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var repeatingEvent = new RepeatingEvent
         {
@@ -387,8 +365,8 @@ public class RepeatingEventsControllerTests
             RepeatType = RepeatType.DayOfWeek,
             DayOfWeek = 1
         };
-        context.RepeatingEvents.Add(repeatingEvent);
-        await context.SaveChangesAsync();
+        Context.RepeatingEvents.Add(repeatingEvent);
+        await Context.SaveChangesAsync();
 
         var result = await controller.Delete(repeatingEvent.Id);
 
@@ -398,9 +376,7 @@ public class RepeatingEventsControllerTests
     [Test]
     public async Task Delete_RemovesEventFromDatabase()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<RepeatingEventsController>>();
-        var controller = new RepeatingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var repeatingEvent = new RepeatingEvent
         {
@@ -408,22 +384,20 @@ public class RepeatingEventsControllerTests
             RepeatType = RepeatType.DayOfWeek,
             DayOfWeek = 1
         };
-        context.RepeatingEvents.Add(repeatingEvent);
-        await context.SaveChangesAsync();
+        Context.RepeatingEvents.Add(repeatingEvent);
+        await Context.SaveChangesAsync();
         var eventId = repeatingEvent.Id;
 
         await controller.Delete(eventId);
 
-        var deletedEvent = await context.RepeatingEvents.FindAsync(eventId);
+        var deletedEvent = await Context.RepeatingEvents.FindAsync(eventId);
         Assert.That(deletedEvent, Is.Null);
     }
 
     [Test]
     public async Task Delete_Returns404WhenNotFound()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<RepeatingEventsController>>();
-        var controller = new RepeatingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var result = await controller.Delete(999);
 
@@ -437,9 +411,7 @@ public class RepeatingEventsControllerTests
     [Test]
     public async Task GetById_ReturnsCorrectDataForAllRepeatTypes()
     {
-        var context = TestDbContextFactory.Create();
-        var mockLogger = new Mock<ILogger<RepeatingEventsController>>();
-        var controller = new RepeatingEventsController(context, mockLogger.Object);
+        var controller = CreateController();
 
         var dayOfWeekEvent = new RepeatingEvent
         {
@@ -469,8 +441,8 @@ public class RepeatingEventsControllerTests
             Day = 4
         };
 
-        context.RepeatingEvents.AddRange(dayOfWeekEvent, dayOfWeekOfMonthEvent, intervalEvent, dateEvent);
-        await context.SaveChangesAsync();
+        Context.RepeatingEvents.AddRange(dayOfWeekEvent, dayOfWeekOfMonthEvent, intervalEvent, dateEvent);
+        await Context.SaveChangesAsync();
 
         // Test DayOfWeek
         var result1 = await controller.GetById(dayOfWeekEvent.Id);

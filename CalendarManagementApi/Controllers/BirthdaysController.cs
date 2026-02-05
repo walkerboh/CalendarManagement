@@ -1,44 +1,43 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using CalendarManagementApi.Data;
 using CalendarManagementApi.DTOs;
 using CalendarManagementApi.Models;
+using CalendarManagementApi.Services;
 
 namespace CalendarManagementApi.Controllers;
 
 [ApiController]
-[Route("api/birthdays")]
+[Route("api/[controller]")]
 public class BirthdaysController : ControllerBase
 {
-    private readonly CalendarDbContext _context;
+    private readonly IBirthdayService _service;
     private readonly ILogger<BirthdaysController> _logger;
 
-    public BirthdaysController(CalendarDbContext context, ILogger<BirthdaysController> logger)
+    public BirthdaysController(IBirthdayService service, ILogger<BirthdaysController> logger)
     {
-        _context = context;
+        _service = service;
         _logger = logger;
     }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<BirthdayDto>>> GetAll()
     {
-        var birthdays = await _context.Birthdays
-            .Select(e => new BirthdayDto
-            {
-                Id = e.Id,
-                Name = e.Name,
-                Month = e.Month,
-                Day = e.Day
-            })
-            .ToListAsync();
+        var birthdays = await _service.GetAllAsync();
 
-        return Ok(birthdays);
+        var result = birthdays.Select(e => new BirthdayDto
+        {
+            Id = e.Id,
+            Name = e.Name,
+            Month = e.Month,
+            Day = e.Day
+        });
+
+        return Ok(result);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<BirthdayDto>> GetById(int id)
     {
-        var birthday = await _context.Birthdays.FindAsync(id);
+        var birthday = await _service.GetByIdAsync(id);
 
         if (birthday == null)
         {
@@ -64,8 +63,7 @@ public class BirthdaysController : ControllerBase
             Day = dto.Day
         };
 
-        _context.Birthdays.Add(birthday);
-        await _context.SaveChangesAsync();
+        await _service.CreateAsync(birthday);
 
         _logger.LogInformation("Created birthday: {Name} on {Month}/{Day}", birthday.Name, birthday.Month, birthday.Day);
 
@@ -83,18 +81,20 @@ public class BirthdaysController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, UpdateBirthdayDto dto)
     {
-        var birthday = await _context.Birthdays.FindAsync(id);
+        var birthday = new Birthday
+        {
+            Id = id,
+            Name = dto.Name,
+            Month = dto.Month,
+            Day = dto.Day
+        };
 
-        if (birthday == null)
+        var updated = await _service.UpdateAsync(birthday);
+
+        if (!updated)
         {
             return NotFound();
         }
-
-        birthday.Name = dto.Name;
-        birthday.Month = dto.Month;
-        birthday.Day = dto.Day;
-
-        await _context.SaveChangesAsync();
 
         _logger.LogInformation("Updated birthday {Id}: {Name} on {Month}/{Day}", id, birthday.Name, birthday.Month, birthday.Day);
 
@@ -104,17 +104,14 @@ public class BirthdaysController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var birthday = await _context.Birthdays.FindAsync(id);
+        var deleted = await _service.DeleteAsync(id);
 
-        if (birthday == null)
+        if (!deleted)
         {
             return NotFound();
         }
 
-        _context.Birthdays.Remove(birthday);
-        await _context.SaveChangesAsync();
-
-        _logger.LogInformation("Deleted birthday {Id}: {Name}", id, birthday.Name);
+        _logger.LogInformation("Deleted birthday {Id}", id);
 
         return NoContent();
     }
