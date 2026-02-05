@@ -486,4 +486,65 @@ public class WaitingEventsControllerTests
     }
 
     #endregion
+
+    #region PostponeToDate Tests
+
+    [Test]
+    public async Task PostponeToDate_Returns204OnSuccess()
+    {
+        var context = TestDbContextFactory.Create();
+        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
+        var controller = new WaitingEventsController(context, mockLogger.Object);
+
+        var waitingEvent = new WaitingEvent
+        {
+            Name = "Task",
+            OccurrenceDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-5))
+        };
+        context.WaitingEvents.Add(waitingEvent);
+        await context.SaveChangesAsync();
+
+        var dto = new PostponeDateDto { Date = new DateOnly(2026, 6, 15) };
+        var result = await controller.PostponeToDate(waitingEvent.Id, dto);
+
+        Assert.That(result, Is.TypeOf<NoContentResult>());
+    }
+
+    [Test]
+    public async Task PostponeToDate_SetsCorrectDate()
+    {
+        var context = TestDbContextFactory.Create();
+        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
+        var controller = new WaitingEventsController(context, mockLogger.Object);
+
+        var waitingEvent = new WaitingEvent
+        {
+            Name = "Task",
+            OccurrenceDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-5))
+        };
+        context.WaitingEvents.Add(waitingEvent);
+        await context.SaveChangesAsync();
+
+        var targetDate = new DateOnly(2026, 9, 20);
+        var dto = new PostponeDateDto { Date = targetDate };
+        await controller.PostponeToDate(waitingEvent.Id, dto);
+
+        var updatedEvent = await context.WaitingEvents.FindAsync(waitingEvent.Id);
+        Assert.That(updatedEvent!.OccurrenceDate, Is.EqualTo(targetDate));
+    }
+
+    [Test]
+    public async Task PostponeToDate_Returns404WhenNotFound()
+    {
+        var context = TestDbContextFactory.Create();
+        var mockLogger = new Mock<ILogger<WaitingEventsController>>();
+        var controller = new WaitingEventsController(context, mockLogger.Object);
+
+        var dto = new PostponeDateDto { Date = new DateOnly(2026, 6, 15) };
+        var result = await controller.PostponeToDate(999, dto);
+
+        Assert.That(result, Is.TypeOf<NotFoundResult>());
+    }
+
+    #endregion
 }

@@ -33,3 +33,8 @@ public class UpdateWaitingEventDto
 
     public Layer Layer { get; set; }
 }
+
+public class PostponeDateDto
+{
+    public DateOnly Date { get; set; }
+}

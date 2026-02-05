@@ -88,4 +88,15 @@ public class WaitingEventService : IWaitingEventService
         await _context.SaveChangesAsync();
         return true;
     }
+
+    public async Task<bool> PostponeToDateAsync(int id, DateOnly date)
+    {
+        var waitingEvent = await _context.WaitingEvents.FindAsync(id);
+        if (waitingEvent == null)
+            return false;
+
+        waitingEvent.OccurrenceDate = date;
+        await _context.SaveChangesAsync();
+        return true;
+    }
 }

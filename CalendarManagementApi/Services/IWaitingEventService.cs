@@ -12,4 +12,5 @@ public interface IWaitingEventService
     Task<bool> DeleteAsync(int id);
     Task<bool> PostponeWeekAsync(int id);
     Task<bool> PostponeMonthAsync(int id);
+    Task<bool> PostponeToDateAsync(int id, DateOnly date);
 }

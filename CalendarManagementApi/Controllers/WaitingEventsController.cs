@@ -160,4 +160,22 @@ public class WaitingEventsController : ControllerBase
 
         return NoContent();
     }
+
+    [HttpPost("{id}/postpone")]
+    public async Task<IActionResult> PostponeToDate(int id, PostponeDateDto dto)
+    {
+        var waitingEvent = await _context.WaitingEvents.FindAsync(id);
+
+        if (waitingEvent == null)
+        {
+            return NotFound();
+        }
+
+        waitingEvent.OccurrenceDate = dto.Date;
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Postponed waiting event {Id} to {Date}", id, waitingEvent.OccurrenceDate);
+
+        return NoContent();
+    }
 }

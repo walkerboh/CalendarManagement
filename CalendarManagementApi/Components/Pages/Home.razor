@@ -71,6 +71,8 @@
                         <td data-label="Actions">
                             <button class="btn btn-warning" @onclick="() => PostponeWeek(evt.Id)">+7 Days</button>
                             <button class="btn btn-warning" @onclick="() => PostponeMonth(evt.Id)">+1 Month</button>
+                            <input type="date" value="@GetPostponeDate(evt.Id).ToString("yyyy-MM-dd")" @onchange="(e) => SetPostponeDate(evt.Id, e)" />
+                            <button class="btn btn-warning" @onclick="() => PostponeToDate(evt.Id)">Set Date</button>
                         </td>
                     </tr>
                 }
@@ -140,6 +142,7 @@
     private List<CalendarManagementApi.DTOs.CalendarEventDto> TodaysEvents { get; set; } = new();
     private List<CalendarManagementApi.DTOs.CalendarEventDto> MotdEvents { get; set; } = new();
     private List<WaitingEvent> DueWaitingEvents { get; set; } = new();
+    private Dictionary<int, DateOnly> PostponeDates { get; set; } = new();
     private DateOnly Today { get; set; }
     private DateTime TestDate { get; set; } = DateTime.Today;
     private string? ApiTestResult { get; set; }
@@ -168,6 +171,27 @@
     private async Task PostponeMonth(int id)
     {
         await WaitingEventService.PostponeMonthAsync(id);
+        await LoadData();
+    }
+
+    private DateOnly GetPostponeDate(int id)
+    {
+        return PostponeDates.TryGetValue(id, out var date) ? date : DateOnly.FromDateTime(DateTime.Today.AddDays(1));
+    }
+
+    private void SetPostponeDate(int id, ChangeEventArgs e)
+    {
+        if (DateOnly.TryParse(e.Value?.ToString(), out var date))
+        {
+            PostponeDates[id] = date;
+        }
+    }
+
+    private async Task PostponeToDate(int id)
+    {
+        var date = GetPostponeDate(id);
+        await WaitingEventService.PostponeToDateAsync(id, date);
+        PostponeDates.Remove(id);
         await LoadData();
     }
 
