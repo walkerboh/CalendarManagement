@@ -1,135 +1,82 @@
-# Calendar Management API
+# CLAUDE.md
 
-## Project Overview
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-A web application and API for managing calendar events. Users can define three types of calendar items through a web interface and query events for specific dates via API.
+## Commands
 
-## Implementation Status: Complete
+```bash
+# Build (run from repo root, where the .sln lives)
+dotnet build CalendarManagementApi.sln
 
-All core features have been implemented and tested.
+# Run (from repo root)
+dotnet run --project CalendarManagementApi/CalendarManagementApi
+
+# All tests
+dotnet test CalendarManagementApi.sln
+
+# Single test class
+dotnet test CalendarManagementApi.sln --filter "FullyQualifiedName~CalendarServiceTests"
+
+# Add a migration (from CalendarManagementApi/ subdirectory)
+dotnet ef migrations add <MigrationName>
+dotnet ef database update
+```
+
+The solution root is `E:\Development\calendar-management-api\`. The working directory for Claude Code is the `CalendarManagementApi/` subdirectory (the web project), so `.sln` commands need `../` or run from the parent.
 
 ## Tech Stack
 
-- .NET 10 Web API with Blazor Server
-- Entity Framework Core with PostgreSQL
-- Serilog for logging (daily rolling log files in `Logs/` directory)
-- NUnit 4.x for testing with Moq and EF Core InMemory
+- .NET 10 Blazor Server + Web API (same process)
+- Entity Framework Core 10 with PostgreSQL (Npgsql)
+- Serilog with daily rolling file sink (`Logs/` directory)
+- NUnit 4 / Moq / EF Core InMemory for tests
+
+## Architecture
+
+### Dual surface: Blazor UI + REST API
+
+Both surfaces live in one project. Blazor pages inject services directly (e.g., `@inject ICalendarService`). API controllers take the same services via constructor DI. There is no HTTP boundary between the Blazor UI and the database — Blazor pages call services directly, not the REST controllers.
+
+### Service layer pattern
+
+Every entity has an `IXxxService` interface and `XxxService` implementation registered as `Scoped`. Controllers and Blazor pages depend only on interfaces. `CalendarService` is the read-only query service used by the API and the Home dashboard.
+
+### `IDateProvider` / `DateProvider`
+
+All "what is today?" logic goes through `IDateProvider.Today` (returns `DateOnly`), registered as `Singleton`. Tests mock this to pin the current date. Never call `DateTime.Today` or `DateOnly.FromDateTime(DateTime.Today)` directly in services or controllers.
+
+### Event types and data model
+
+Four entity types, each with full CRUD:
+- **MessageOfTheDay** — `(Month, Day)` unique index; displays a message once per year on that date
+- **WaitingEvent** — one-shot event with `OccurrenceDate`; "past due" means `OccurrenceDate <= today`; postpone endpoints shift the date
+- **RepeatingEvent** — polymorphic via `RepeatType` enum (`DayOfWeek`, `DayOfWeekOfMonth`, `Interval`, `Date`); only the fields relevant to the chosen type are populated
+- **Birthday** — `(Month, Day)` with no uniqueness constraint; calendar query returns birthdays within a 14-day window
+
+All four entities have an optional `Image` (string path/URL) and a `Layer` enum (`Black` / `Red`) used for display styling.
+
+### Calendar query logic
+
+`CalendarService` is the heart of the read path:
+- `GetEventsForDate` returns due `WaitingEvent`s + `RepeatingEvent`s matching the date
+- `GetMotdForDate` returns `MessageOfTheDay` rows matching `(month, day)`
+- `GetBirthdaysForDate` returns birthdays within 14 days; EF can't translate tuple `Contains` to SQL so it fetches all rows and filters in memory
+
+`DoesRepeatOnDate` dispatches to `CheckDayOfWeek`, `CheckDayOfWeekOfMonth`, `CheckInterval`, `CheckDate`. All these are `internal` to enable direct unit testing without the controller layer.
+
+### Test infrastructure
+
+- `TestDbContextFactory.Create()` spins up a unique EF InMemory database per test
+- `ControllerTestBase<TController>` provides `Context`, `MockLogger`, and `MockDateProvider` with `SetUp`/`TearDown`; all controller test classes inherit from it
+- Controller tests instantiate real services against the in-memory DB rather than mocking the service layer
+
+## Database
+
+Connection string in `appsettings.json` under `ConnectionStrings.DefaultConnection`. Migrations run automatically on startup via `dbContext.Database.Migrate()`.
+
+Current migrations (in order): `InitialCreate` → `AddDateRepeatType` → `AddTextColorToDateEvent` → `AddImageToWaitingAndRepeatingEvents` → `RenameDateEventToMessageOfTheDay` → `AddLayerEnum` → `AddBirthdays`.
 
 ## Development Rules
 
 - Always check unit tests and aim for full coverage
 - Build and test after all code changes
-
-## Solution Structure
-
-```
-CalendarManagementApi.sln
-├── CalendarManagementApi/          # Main web application
-│   ├── Components/                 # Blazor components
-│   │   ├── App.razor               # Root component
-│   │   ├── Routes.razor            # Router configuration
-│   │   ├── _Imports.razor          # Global usings
-│   │   ├── Layout/                 # Layout components
-│   │   │   ├── MainLayout.razor    # Main layout with nav
-│   │   │   └── NavMenu.razor       # Navigation component
-│   │   └── Pages/                  # Page components
-│   │       ├── Home.razor          # Dashboard with today's events
-│   │       ├── MessageOfTheDay/    # MessageOfTheDay CRUD pages
-│   │       ├── WaitingEvents/      # WaitingEvent CRUD pages
-│   │       └── RepeatingEvents/    # RepeatingEvent CRUD pages
-│   ├── Controllers/                # API endpoints
-│   ├── Data/                       # EF Core DbContext
-│   ├── DTOs/                       # Data transfer objects
-│   ├── Models/                     # Entity models
-│   ├── Services/                   # Business logic
-│   │   ├── CalendarService.cs      # Calendar event retrieval
-│   │   ├── IMessageOfTheDayService.cs    # MessageOfTheDay interface
-│   │   ├── MessageOfTheDayService.cs     # MessageOfTheDay implementation
-│   │   ├── IWaitingEventService.cs # WaitingEvent interface
-│   │   ├── WaitingEventService.cs  # WaitingEvent implementation
-│   │   ├── IRepeatingEventService.cs # RepeatingEvent interface
-│   │   └── RepeatingEventService.cs  # RepeatingEvent implementation
-│   ├── Migrations/                 # EF Core migrations
-│   └── wwwroot/                    # Static files
-│       └── css/app.css             # Application styles
-└── CalendarManagementApi.Tests/    # NUnit test project
-    ├── Controllers/                # Controller tests
-    ├── Services/                   # Service tests
-    └── Helpers/                    # Test utilities
-```
-
-## Event Types
-
-### Messages of the Day
-Messages that display on a specific month/day each year (e.g., birthdays, holidays). Unique constraint on (Month, Day).
-- **Model:** `MessageOfTheDay` - Id, Message, Month (1-12), Day (1-31), TextColor
-- **API:** `api/messageoftheday` - Full CRUD (returns 409 Conflict on duplicate Month/Day)
-- **UI:** `/messageoftheday` - List, Create, Edit, Delete pages
-
-### Waiting Events
-Events that occur once, then wait for user action to reschedule.
-- **Model:** `WaitingEvent` - Id, Name, OccurrenceDate
-- **API:** `api/waitingevents` - Full CRUD + postpone endpoints
-  - `POST api/waitingevents/{id}/postpone-week` - Reschedule 7 days from today
-  - `POST api/waitingevents/{id}/postpone-month` - Reschedule 1 month from today
-- **UI:** `/waitingevents` - List, Create, Edit, Delete pages with postpone buttons
-
-### Repeating Events
-Events with configurable repeat patterns.
-- **Model:** `RepeatingEvent` with `RepeatType` enum:
-  - `DayOfWeek` - Every specified weekday (0=Sunday to 6=Saturday)
-  - `DayOfWeekOfMonth` - Specified weekday on specific weeks (e.g., "1,3" for 1st and 3rd week)
-  - `Interval` - Every X days from a start date
-  - `Date` - Annually on specific month/day (similar to MessageOfTheDay but as repeating)
-- **API:** `api/repeatingevents` - Full CRUD
-- **UI:** `/repeatingevents` - List, Create, Edit, Delete pages with conditional form fields
-
-## Calendar API
-
-Query events for a specific date:
-- `GET api/calendar/{date}` - Returns WaitingEvents (past due) and matching RepeatingEvents
-- `GET api/calendar/motd/{date}` - Returns MessagesOfTheDay matching the month/day
-
-Response format:
-```json
-{
-  "name": "Event Name",
-  "eventType": "WaitingEvent|RepeatingEvent|MessageOfTheDay",
-  "sourceId": 123
-}
-```
-
-## Database
-
-PostgreSQL with connection string in `appsettings.json`:
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Database=calendardb;Username=...;Password=..."
-  }
-}
-```
-
-### Migrations
-- `InitialCreate` - DateEvent, WaitingEvent, RepeatingEvent tables
-- `AddDateRepeatType` - Added Month/Day fields to RepeatingEvent for Date repeat type
-- `RenameDateEventToMessageOfTheDay` - Renamed DateEvents table to MessagesOfTheDay, Name column to Message, added unique index on (Month, Day)
-
-## Running the Application
-
-```bash
-# Build
-dotnet build CalendarManagementApi.sln
-
-# Run
-dotnet run --project CalendarManagementApi
-
-# Run tests (104 tests)
-dotnet test CalendarManagementApi.sln
-```
-
-## Test Coverage
-
-104 tests covering:
-- **CalendarService** (46 tests): All repeat logic (CheckDayOfWeek, CheckDayOfWeekOfMonth, CheckInterval, CheckDate, GetWeekOfMonth)
-- **Controllers** (58 tests): CRUD operations, 404 handling, 409 duplicate handling, IsPastDue calculation, postpone functionality

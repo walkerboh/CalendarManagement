@@ -1,9 +1,11 @@
-using Microsoft.EntityFrameworkCore;
 using CalendarManagementApi.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace CalendarManagementApi.Data;
 
-public class CalendarDbContext : DbContext
+public class CalendarDbContext : IdentityDbContext<IdentityUser>
 {
     public CalendarDbContext(DbContextOptions<CalendarDbContext> options) : base(options)
     {

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using CalendarManagementApi.DTOs;
 using CalendarManagementApi.Models;
@@ -5,6 +6,7 @@ using CalendarManagementApi.Services;
 
 namespace CalendarManagementApi.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class WaitingEventsController : ControllerBase

@@ -1,0 +1,48 @@
+@page
+@model CalendarManagementApi.Pages.Account.LoginModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign In - Calendar Management</title>
+    <link rel="stylesheet" href="/css/app.css" />
+    <style>
+        body { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f0f2f5; }
+        .login-card { width: 100%; max-width: 400px; padding: 2rem; }
+        .login-title { font-size: 1.1rem; color: #666; margin-bottom: 1.5rem; }
+        .error-message { color: #c0392b; background: #fdf2f2; border: 1px solid #f5c6cb; border-radius: 4px; padding: 0.75rem; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="login-card card">
+        <h1 style="margin-bottom: 0.25rem;">Calendar Management</h1>
+        <p class="login-title">Sign in to continue</p>
+
+        @if (Model.Error != null)
+        {
+            <div class="error-message">@Model.Error</div>
+        }
+
+        <form method="post">
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="Username" class="form-control"
+                       value="@Model.Username" required autofocus autocomplete="username" />
+            </div>
+            <div class="form-group" style="margin-top: 1rem;">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="Password" class="form-control"
+                       required autocomplete="current-password" />
+            </div>
+            <div style="margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Sign In</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

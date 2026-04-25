@@ -5,10 +5,15 @@
         <label for="nav-toggle" class="nav-toggle-label">&#9776;</label>
     </div>
     <div class="nav-links">
-        <a href="/">Home</a>
-        <a href="/messageoftheday">Messages of the Day</a>
-        <a href="/waitingevents">Waiting Events</a>
-        <a href="/repeatingevents">Repeating Events</a>
-        <a href="/birthdays">Birthdays</a>
+        <AuthorizeView>
+            <Authorized>
+                <a href="/">Home</a>
+                <a href="/messageoftheday">Messages of the Day</a>
+                <a href="/waitingevents">Waiting Events</a>
+                <a href="/repeatingevents">Repeating Events</a>
+                <a href="/birthdays">Birthdays</a>
+                <a href="/account/logout" style="margin-top: auto; color: #888;">Sign Out</a>
+            </Authorized>
+        </AuthorizeView>
     </div>
 </nav>
