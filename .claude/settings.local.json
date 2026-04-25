@@ -10,7 +10,8 @@
       "Bash(curl:*)",
       "Bash(ping:*)",
       "Bash(dotnet restore:*)",
-      "Bash(dotnet test:*)"
+      "Bash(dotnet test:*)",
+      "Bash(grep -E \"\\\\.cs$\")"
     ]
   }
 }

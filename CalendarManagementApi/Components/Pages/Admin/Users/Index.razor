@@ -1,0 +1,55 @@
+@page "/admin/users"
+@inject UserManager<IdentityUser> UserManager
+@inject AuthenticationStateProvider AuthStateProvider
+
+@using Microsoft.AspNetCore.Identity
+
+<PageTitle>Users - Calendar Management</PageTitle>
+
+<h1>Users</h1>
+
+<p>
+    <a href="/admin/users/create" class="btn btn-success">Create New</a>
+</p>
+
+@if (Users.Any())
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Users)
+            {
+                <tr>
+                    <td data-label="Username">@user.UserName</td>
+                    <td data-label="Actions">
+                        @if (user.Id != CurrentUserId)
+                        {
+                            <a href="/admin/users/@user.Id/change-password" class="btn btn-primary">Change Password</a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No users found. <a href="/admin/users/create">Create one</a>.</p>
+}
+
+@code {
+    private List<IdentityUser> Users { get; set; } = new();
+    private string? CurrentUserId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        CurrentUserId = UserManager.GetUserId(authState.User);
+        Users = UserManager.Users.ToList();
+    }
+}

@@ -1,0 +1,84 @@
+@page "/admin/users/create"
+@inject UserManager<IdentityUser> UserManager
+@inject NavigationManager Navigation
+
+@using Microsoft.AspNetCore.Identity
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>Create User - Calendar Management</PageTitle>
+
+<h1>Create User</h1>
+
+<div class="card">
+    @if (Errors.Any())
+    {
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                @foreach (var error in Errors)
+                {
+                    <li>@error</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <EditForm Model="Model" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="alert alert-danger" />
+
+        <div class="form-group">
+            <label for="username">Username</label>
+            <InputText id="username" @bind-Value="Model.Username" class="form-control" />
+            <ValidationMessage For="() => Model.Username" class="text-danger" />
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <InputText id="password" type="password" @bind-Value="Model.Password" class="form-control" />
+            <ValidationMessage For="() => Model.Password" class="text-danger" />
+        </div>
+
+        <div class="form-group">
+            <label for="confirmPassword">Confirm Password</label>
+            <InputText id="confirmPassword" type="password" @bind-Value="Model.ConfirmPassword" class="form-control" />
+            <ValidationMessage For="() => Model.ConfirmPassword" class="text-danger" />
+        </div>
+
+        <div class="form-group">
+            <button type="submit" class="btn btn-success">Create</button>
+            <a href="/admin/users" class="btn btn-secondary">Cancel</a>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    private CreateUserModel Model { get; set; } = new();
+    private List<string> Errors { get; set; } = new();
+
+    private async Task HandleSubmit()
+    {
+        Errors.Clear();
+        var user = new IdentityUser { UserName = Model.Username };
+        var result = await UserManager.CreateAsync(user, Model.Password);
+        if (result.Succeeded)
+        {
+            Navigation.NavigateTo("/admin/users");
+        }
+        else
+        {
+            Errors = result.Errors.Select(e => e.Description).ToList();
+        }
+    }
+
+    private sealed class CreateUserModel
+    {
+        [Required]
+        public string Username { get; set; } = string.Empty;
+
+        [Required, MinLength(6)]
+        public string Password { get; set; } = string.Empty;
+
+        [Required, Compare(nameof(Password), ErrorMessage = "Passwords do not match.")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+    }
+}
