@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace CalendarManagementApi.Migrations
+namespace CalendarManagement.Migrations
 {
     /// <inheritdoc />
     public partial class AddDateRepeatType : Migration

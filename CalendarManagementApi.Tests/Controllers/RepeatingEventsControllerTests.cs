@@ -1,14 +1,14 @@
-using CalendarManagementApi.Controllers;
-using CalendarManagementApi.DTOs;
-using CalendarManagementApi.Models;
-using CalendarManagementApi.Services;
-using CalendarManagementApi.Tests.Helpers;
+using CalendarManagement.Controllers;
+using CalendarManagement.DTOs;
+using CalendarManagement.Models;
+using CalendarManagement.Services;
+using CalendarManagement.Tests.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
 
-namespace CalendarManagementApi.Tests.Controllers;
+namespace CalendarManagement.Tests.Controllers;
 
 [TestFixture]
 public class RepeatingEventsControllerTests : ControllerTestBase<RepeatingEventsController>

@@ -1,5 +1,5 @@
-using CalendarManagementApi.Data;
-using CalendarManagementApi.Services;
+using CalendarManagement.Data;
+using CalendarManagement.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -7,7 +7,7 @@ using Moq;
 using NUnit.Framework;
 using System.Security.Claims;
 
-namespace CalendarManagementApi.Tests.Helpers;
+namespace CalendarManagement.Tests.Helpers;
 
 public abstract class ControllerTestBase<TController> where TController : class
 {

@@ -1,7 +1,7 @@
-using CalendarManagementApi.Data;
+using CalendarManagement.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace CalendarManagementApi.Tests.Helpers;
+namespace CalendarManagement.Tests.Helpers;
 
 public static class TestDbContextFactory
 {

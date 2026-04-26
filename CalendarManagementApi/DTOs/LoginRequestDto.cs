@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CalendarManagementApi.DTOs;
+namespace CalendarManagement.DTOs;
 
 public class LoginRequestDto
 {

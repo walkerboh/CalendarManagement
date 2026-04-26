@@ -1,6 +1,6 @@
-using CalendarManagementApi.Models;
+using CalendarManagement.Models;
 
-namespace CalendarManagementApi.Services;
+namespace CalendarManagement.Services;
 
 public interface IMessageOfTheDayService
 {

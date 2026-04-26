@@ -1,4 +1,4 @@
-namespace CalendarManagementApi.Services;
+namespace CalendarManagement.Services;
 
 public class DateProvider : IDateProvider
 {

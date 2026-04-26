@@ -1,6 +1,6 @@
-using CalendarManagementApi.DTOs;
+using CalendarManagement.DTOs;
 
-namespace CalendarManagementApi.Services;
+namespace CalendarManagement.Services;
 
 public interface ICalendarService
 {

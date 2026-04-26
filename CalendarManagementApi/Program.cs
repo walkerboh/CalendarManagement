@@ -1,6 +1,6 @@
-using CalendarManagementApi.Components;
-using CalendarManagementApi.Data;
-using CalendarManagementApi.Services;
+using CalendarManagement.Components;
+using CalendarManagement.Data;
+using CalendarManagement.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -126,8 +126,8 @@ try
     if (app.Environment.IsDevelopment())
     {
         app.MapOpenApi().AllowAnonymous();
-        app.UseHttpsRedirection();
     }
+    app.UseHttpsRedirection();
     app.UseStaticFiles();
     app.UseRouting();
     app.UseAuthentication();
@@ -145,6 +145,7 @@ try
     app.MapControllers();
     app.MapRazorComponents<App>()
         .AddInteractiveServerRenderMode();
+        //.AllowAnonymous();
 
     app.Run();
 }

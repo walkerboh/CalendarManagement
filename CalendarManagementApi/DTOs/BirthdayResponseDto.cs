@@ -1,4 +1,4 @@
-namespace CalendarManagementApi.DTOs;
+namespace CalendarManagement.DTOs;
 
 public class BirthdayResponseDto
 {

@@ -15,7 +15,7 @@
         <h2>Message of the Day</h2>
         @foreach (var motd in MotdEvents)
         {
-            <p style="font-size: 1.2rem; margin: 0.5rem 0; color: @(motd.Layer == CalendarManagementApi.Models.Layer.Red ? "red" : "black");">@motd.Name</p>
+            <p style="font-size: 1.2rem; margin: 0.5rem 0; color: @(motd.Layer == CalendarManagement.Models.Layer.Red ? "red" : "black");">@motd.Name</p>
         }
     </div>
 }
@@ -164,9 +164,9 @@
 </div>
 
 @code {
-    private List<CalendarManagementApi.DTOs.CalendarEventDto> TodaysEvents { get; set; } = new();
-    private List<CalendarManagementApi.DTOs.CalendarEventDto> MotdEvents { get; set; } = new();
-    private List<CalendarManagementApi.Models.Birthday> TodaysBirthdays { get; set; } = new();
+    private List<CalendarManagement.DTOs.CalendarEventDto> TodaysEvents { get; set; } = new();
+    private List<CalendarManagement.DTOs.CalendarEventDto> MotdEvents { get; set; } = new();
+    private List<CalendarManagement.Models.Birthday> TodaysBirthdays { get; set; } = new();
     private List<WaitingEvent> DueWaitingEvents { get; set; } = new();
     private Dictionary<int, DateOnly> PostponeDates { get; set; } = new();
     private DateOnly Today { get; set; }

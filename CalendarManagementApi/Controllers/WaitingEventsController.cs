@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using CalendarManagementApi.DTOs;
-using CalendarManagementApi.Models;
-using CalendarManagementApi.Services;
+using CalendarManagement.DTOs;
+using CalendarManagement.Models;
+using CalendarManagement.Services;
 
-namespace CalendarManagementApi.Controllers;
+namespace CalendarManagement.Controllers;
 
 [Authorize]
 [ApiController]

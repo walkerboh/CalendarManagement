@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-namespace CalendarManagementApi.Models;
+namespace CalendarManagement.Models;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum Layer

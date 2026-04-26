@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-using CalendarManagementApi.Models;
+using CalendarManagement.Models;
 
-namespace CalendarManagementApi.DTOs;
+namespace CalendarManagement.DTOs;
 
 public class RepeatingEventDto
 {

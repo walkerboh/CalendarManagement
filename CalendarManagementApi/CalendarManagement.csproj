@@ -7,14 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="CalendarManagementApi.Tests" />
+    <InternalsVisibleTo Include="CalendarManagement.Tests" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="CalendarManagementApi.Tests\**" />
-    <Content Remove="CalendarManagementApi.Tests\**" />
-    <EmbeddedResource Remove="CalendarManagementApi.Tests\**" />
-    <None Remove="CalendarManagementApi.Tests\**" />
+    <Compile Remove="CalendarManagement.Tests\**" />
+    <Content Remove="CalendarManagement.Tests\**" />
+    <EmbeddedResource Remove="CalendarManagement.Tests\**" />
+    <None Remove="CalendarManagement.Tests\**" />
   </ItemGroup>
 
   <ItemGroup>

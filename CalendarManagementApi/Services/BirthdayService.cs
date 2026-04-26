@@ -1,9 +1,9 @@
-using CalendarManagementApi.Data;
-using CalendarManagementApi.Models;
+using CalendarManagement.Data;
+using CalendarManagement.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace CalendarManagementApi.Services;
+namespace CalendarManagement.Services;
 
 public class BirthdayService : IBirthdayService
 {

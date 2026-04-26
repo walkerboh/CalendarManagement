@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CalendarManagementApi.Models;
+namespace CalendarManagement.Models;
 
 public enum RepeatType
 {

@@ -1,10 +1,10 @@
-using CalendarManagementApi.Data;
-using CalendarManagementApi.DTOs;
-using CalendarManagementApi.Models;
+using CalendarManagement.Data;
+using CalendarManagement.DTOs;
+using CalendarManagement.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace CalendarManagementApi.Services;
+namespace CalendarManagement.Services;
 
 public class CalendarService : ICalendarService
 {

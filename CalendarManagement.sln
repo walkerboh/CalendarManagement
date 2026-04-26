@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36804.6
+# Visual Studio Version 18
+VisualStudioVersion = 18.5.11716.220 stable
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalendarManagementApi", "CalendarManagementApi\CalendarManagementApi.csproj", "{AA5435A5-4961-48F2-EF9D-4553CC051A12}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalendarManagement", "CalendarManagementApi\CalendarManagement.csproj", "{AA5435A5-4961-48F2-EF9D-4553CC051A12}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalendarManagementApi.Tests", "CalendarManagementApi.Tests\CalendarManagementApi.Tests.csproj", "{C9F42F0C-0F2E-434F-B338-50D856B54173}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalendarManagement.Tests", "CalendarManagementApi.Tests\CalendarManagement.Tests.csproj", "{C9F42F0C-0F2E-434F-B338-50D856B54173}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

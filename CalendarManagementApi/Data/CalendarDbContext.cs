@@ -1,9 +1,9 @@
-using CalendarManagementApi.Models;
+using CalendarManagement.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace CalendarManagementApi.Data;
+namespace CalendarManagement.Data;
 
 public class CalendarDbContext : IdentityDbContext<IdentityUser>
 {
@@ -15,6 +15,7 @@ public class CalendarDbContext : IdentityDbContext<IdentityUser>
     public DbSet<WaitingEvent> WaitingEvents => Set<WaitingEvent>();
     public DbSet<RepeatingEvent> RepeatingEvents => Set<RepeatingEvent>();
     public DbSet<Birthday> Birthdays => Set<Birthday>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

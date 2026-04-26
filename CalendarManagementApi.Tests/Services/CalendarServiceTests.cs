@@ -1,12 +1,12 @@
-using CalendarManagementApi.Data;
-using CalendarManagementApi.Models;
-using CalendarManagementApi.Services;
-using CalendarManagementApi.Tests.Helpers;
+using CalendarManagement.Data;
+using CalendarManagement.Models;
+using CalendarManagement.Services;
+using CalendarManagement.Tests.Helpers;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
 
-namespace CalendarManagementApi.Tests.Services;
+namespace CalendarManagement.Tests.Services;
 
 [TestFixture]
 public class CalendarServiceTests
